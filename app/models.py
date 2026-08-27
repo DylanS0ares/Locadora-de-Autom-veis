@@ -1,0 +1,55 @@
+from sqlalchemy import String, Integer, Boolean,Float,DateTime,ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column,relationship
+from .database import Base
+from datetime import datetime
+
+class Veiculo(Base):
+    __tablename__ = "veiculos"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    locacoes: Mapped[list["Locacao"]] = relationship(
+    back_populates="veiculo")
+    modelo : Mapped[str] = mapped_column(String(100))
+    marca : Mapped[str] = mapped_column(String(100))
+    ano: Mapped[int] = mapped_column(Integer)
+    placa: Mapped[str] = mapped_column(String(100))
+    disponivel: Mapped[bool] = mapped_column(Boolean,default=True)
+
+class Cliente(Base):
+    __tablename__ = "clientes"
+    id : Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    locacoes: Mapped[list["Locacao"]] = relationship(
+        back_populates="cliente"
+    )
+    nome : Mapped[str] = mapped_column(String(100))
+    email : Mapped[str] = mapped_column(String(100))
+    telefone: Mapped[str] = mapped_column(String(100))
+
+class Locacao(Base):
+    __tablename__ = "locacoes"
+    id : Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    cliente: Mapped["Cliente"] = relationship(back_populates="locacoes")
+    veiculo: Mapped["Veiculo"] = relationship(back_populates="locacoes")
+    cliente_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("clientes.id")
+    )
+    veiculo_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("veiculos.id")
+    )
+    data_inicio: Mapped[datetime] = mapped_column(DateTime)
+    data_fim: Mapped[datetime] = mapped_column(DateTime)
+    valor: Mapped[float] = mapped_column(Float)
