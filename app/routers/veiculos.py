@@ -1,9 +1,7 @@
 from fastapi import Depends,HTTPException,APIRouter
-from sqlalchemy import select
 from sqlalchemy.orm import Session
-
+from app.crud import veiculos as crud_veiculos
 from ..database import get_db
-from ..models import Veiculo
 from ..schemas import (
     VeiculoSchema,
     VeiculoCreate,
@@ -19,9 +17,31 @@ router = APIRouter(
 @router.get("/",response_model=list[VeiculoSchema])
 
 def lista_veiculos(db:Session = Depends(get_db)):
-    veiculos = db.scalars(
-        select(Veiculo)).all()
-    return veiculos
+    return crud_veiculos.listar_veiculos(db)
+
+
+
+
+@router.get("/disponiveis",response_model=list[VeiculoSchema])
+def listar_veiculos_disponiveis(
+    db: Session = Depends(get_db)
+):
+    return crud_veiculos.listar_veiculos_disponiveis(db)
+    
+
+
+@router.get("/{veiculo_id}",response_model = VeiculoSchema)
+def buscar_veiculo(veiculo_id:int,
+                   db:Session = Depends(get_db)):
+    veiculo = crud_veiculos.buscar_veiculo(db,veiculo_id)
+    if not veiculo:
+        raise HTTPException(
+            status_code=404,
+            detail="Veículo não encontrado"
+        )
+        
+    return veiculo
+
 
 @router.post("/",response_model=VeiculoSchema)
 
@@ -29,28 +49,15 @@ def criar_veiculos(
     veiculo: VeiculoCreate,
     db : Session = Depends(get_db)
 ):
-        novo_veiculo = Veiculo(
-             modelo = veiculo.modelo,
-             marca = veiculo.marca,
-             ano = veiculo.ano,
-             placa = veiculo.placa,
-             disponivel = veiculo.disponivel
+    novo_veiculo = crud_veiculos.criar_veiculo(db,veiculo)
+
+    if not novo_veiculo:
+        raise HTTPException(
+            status_code=404,
+            detail="Já existe um veículo com essa placa"
         )
-        placa_existente = db.scalar(
-        select(Veiculo).where(Veiculo.placa == veiculo.placa)
-        )
-
-        if placa_existente:
-            raise HTTPException(
-                status_code=400,
-                detail="Já existe um veículo com essa placa"
-            )
-        db.add(novo_veiculo)
-        db.commit()
-        db.refresh(novo_veiculo)
-
-        return novo_veiculo
-
+       
+    return novo_veiculo
 
 @router.put("/{veiculo_id}", response_model=VeiculoSchema)
 
@@ -59,9 +66,7 @@ def atualizar_veiculo(
     veiculo: VeiculoUpdate,
     db: Session = Depends(get_db)
 ):
-    veiculo_existente = db.scalar(
-        select(Veiculo).where(Veiculo.id == veiculo_id)
-    )
+    veiculo_existente = crud_veiculos.atualizar_veiculo(db,veiculo_id,veiculo)
 
     if not veiculo_existente:
         raise HTTPException(
@@ -86,27 +91,8 @@ def deletar_veiculo(
     veiculo_id :int,
     db:Session =Depends(get_db)
 ):
-    veiculo = db.scalar(select(Veiculo).where(Veiculo.id == veiculo_id))
-
-    if not veiculo:
-     raise HTTPException(
-         status_code = 404,
-         detail = "Veículo não encontrado"
-     )
-
-    db.delete(veiculo)
-    db.commit()
-
+    crud_veiculos.deletar_veiculo(db,veiculo_id)
     return{"mensagem": "Veículo deletado com sucesso"}     
 
 
-@router.get("/disponiveis",response_model=list[VeiculoSchema])
-def listar_veiculos_disponiveis(
-    db: Session = Depends(get_db)
-):
-    veiculos = db.scalars(
-        select(Veiculo).where(Veiculo.disponivel==True)    
-        ).all()
-
-    return veiculos
 

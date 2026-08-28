@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from crud import locacoes as crud_locacoes
 from ..database import get_db
-from ..models import Locacao, Cliente, Veiculo
 from ..schemas import (
     LocacaoSchema,
     LocacaoCreate,
     LocacaoUpdate
 )
+
 
 router = APIRouter(
     prefix="/locacoes",
@@ -16,60 +16,42 @@ router = APIRouter(
 )
 
 
-@router.get("/",response_model=list[LocacaoSchema])
-def lista_locacoes(db:Session = Depends(get_db)):
-    locacoes = db.scalars(
-        select(Locacao)
-    ).all()
+@router.get("/", response_model=list[LocacaoSchema])
+def lista_locacoes(
+    db: Session = Depends(get_db)
+):
+    return crud_locacoes.lista_locacoes(db)
 
-    return locacoes
 
 @router.post("/", response_model=LocacaoSchema)
 def criar_locacao(
     locacao: LocacaoCreate,
     db: Session = Depends(get_db)
 ):
-    cliente = db.scalar(
-        select(Cliente).where(Cliente.id == locacao.cliente_id)
+    resultado = crud_locacoes.criar_locacao(
+        db,
+        locacao
     )
 
-    if not cliente:
+    if resultado == "cliente_nao_encontrado":
         raise HTTPException(
-        status_code=404,
-        detail="Cliente não encontrado"
-    )
-        
-    veiculo = db.scalar(
-        select(Veiculo).where(Veiculo.id == locacao.veiculo_id)
-    )
+            status_code=404,
+            detail="Cliente não encontrado"
+        )
 
-    if not veiculo:
+    if resultado == "veiculo_nao_encontrado":
         raise HTTPException(
-        status_code=404,
-        detail="Veículo não encontrado"
-    )
+            status_code=404,
+            detail="Veículo não encontrado"
+        )
 
-    if not veiculo.disponivel:
+    if resultado == "veiculo_indisponivel":
         raise HTTPException(
-        status_code=404,
-        detail="Veículo não disponivel"
-    )
+            status_code=400,
+            detail="Veículo não disponível"
+        )
 
-    nova_locacao = Locacao(
-        cliente_id=locacao.cliente_id,
-        veiculo_id=locacao.veiculo_id,
-        data_inicio=locacao.data_inicio,
-        data_fim=locacao.data_fim,
-        valor=locacao.valor
-    )
-
-    veiculo.disponivel = False
-
-    db.add(nova_locacao)
-    db.commit()
-    db.refresh(nova_locacao)
-
-    return nova_locacao
+    return resultado
 
 
 @router.put("/{locacao_id}", response_model=LocacaoSchema)
@@ -78,130 +60,89 @@ def atualizar_locacao(
     locacao: LocacaoUpdate,
     db: Session = Depends(get_db)
 ):
-    locacao_existente = db.scalar(
-        select(Locacao).where(Locacao.id == locacao_id)
+    resultado = crud_locacoes.atualizar_locacao(
+        locacao_id,
+        locacao,
+        db
     )
 
-    if not locacao_existente:
+    if resultado == "locacao_nao_encontrada":
         raise HTTPException(
-        status_code=404,
-        detail="Locação não encontrada"
-    )
-
-    cliente = db.scalar(
-        select(Cliente).where(Cliente.id == locacao.cliente_id)
-    )
-
-    if not cliente:
-        raise HTTPException(
-        status_code=404,
-        detail="Cliente não encontrado"
-    )
-
-    veiculo = db.scalar(
-        select(Veiculo).where(Veiculo.id == locacao.veiculo_id)
-    )
-
-    if not veiculo:
-        raise HTTPException(
-        status_code=404,
-        detail="Veiculo não encontrado"
-    )
-
-    if not veiculo.disponivel and veiculo.id != locacao_existente.veiculo_id:
-        raise HTTPException(
-        status_code=404,
-        detail="Veiculo não disponivel"
-    )
-    # Libera o veículo antigo
-    veiculo_antigo = db.scalar(
-        select(Veiculo).where(
-            Veiculo.id == locacao_existente.veiculo_id
+            status_code=404,
+            detail="Locação não encontrada"
         )
-    )
 
-    if veiculo_antigo.id != veiculo.id:
-        veiculo_antigo.disponivel = True
-        veiculo.disponivel = False
+    if resultado == "cliente_nao_encontrado":
+        raise HTTPException(
+            status_code=404,
+            detail="Cliente não encontrado"
+        )
 
-    locacao_existente.cliente_id = locacao.cliente_id
-    locacao_existente.veiculo_id = locacao.veiculo_id
-    locacao_existente.data_inicio = locacao.data_inicio
-    locacao_existente.data_fim = locacao.data_fim
-    locacao_existente.valor = locacao.valor
+    if resultado == "veiculo_nao_encontrado":
+        raise HTTPException(
+            status_code=404,
+            detail="Veículo não encontrado"
+        )
 
-    db.commit()
-    db.refresh(locacao_existente)
+    if resultado == "veiculo_indisponivel":
+        raise HTTPException(
+            status_code=400,
+            detail="Veículo não disponível"
+        )
 
-    return locacao_existente
+    return resultado
+
 
 @router.delete("/{locacao_id}")
 def deletar_locacao(
     locacao_id: int,
     db: Session = Depends(get_db)
 ):
-    locacao = db.scalar(
-        select(Locacao).where(Locacao.id == locacao_id)
+    resultado = crud_locacoes.deletar_locacao(
+        locacao_id,
+        db
     )
 
-    if not locacao:
+    if resultado == "locacao_nao_encontrada":
         raise HTTPException(
-        status_code=404,
-        detail="Locação não encontrada"
-    )
-    veiculo = db.scalar(
-        select(Veiculo).where(
-            Veiculo.id == locacao.veiculo_id
+            status_code=404,
+            detail="Locação não encontrada"
         )
-    )
 
-    if veiculo:
-        veiculo.disponivel = True
+    return {
+        "mensagem": "Locação deletada com sucesso"
+    }
 
-    db.delete(locacao)
-    db.commit()
-
-    return {"mensagem": "Locação deletada com sucesso"}
 
 @router.post("/{locacao_id}/devolver")
 def devolver_veiculo(
-    locacao_id:int,
-    db:Session = Depends(get_db)
+    locacao_id: int,
+    db: Session = Depends(get_db)
 ):
-    locacao = db.scalar(
-        select(Locacao).where(Locacao.id==locacao_id)
+    resultado = crud_locacoes.devolver_veiculo(
+        locacao_id,
+        db
     )
 
-    if not locacao:
+    if resultado == "locacao_nao_encontrada":
         raise HTTPException(
-            status_code = 404,
-            detail = "Locação não encontrada"
+            status_code=404,
+            detail="Locação não encontrada"
         )
 
-    veiculo = db.scalar(
-        select(Veiculo).where(Veiculo.id == locacao.veiculo_id)
-
-    )
-
-    if not veiculo:
+    if resultado == "veiculo_nao_encontrado":
         raise HTTPException(
-            status_code =404,
-            detail = "Veículo não encontrado"
+            status_code=404,
+            detail="Veículo não encontrado"
         )
 
-    if veiculo.disponivel:
+    if resultado == "veiculo_ja_disponivel":
         raise HTTPException(
             status_code=400,
             detail="Esse veículo já está disponível"
         )
-    veiculo.disponivel = True
 
-    db.commit()
-    db.refresh(veiculo)
-
-    return{
+    return {
         "mensagem": "Veículo devolvido com sucesso",
-        "veiculo": veiculo.modelo
+        "veiculo": resultado.modelo
     }
-
-

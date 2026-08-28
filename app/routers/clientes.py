@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from crud import clientes as crud_clientes
 from ..database import get_db
-from ..models import Cliente
 from ..schemas import (
     ClienteSchema,
     ClienteCreate,
     ClienteUpdate
 )
+
 
 router = APIRouter(
     prefix="/clientes",
@@ -16,14 +16,11 @@ router = APIRouter(
 )
 
 
-
 @router.get("/", response_model=list[ClienteSchema])
-def lista_clientes(db: Session = Depends(get_db)):
-    clientes = db.scalars(
-        select(Cliente)
-    ).all()
-
-    return clientes
+def lista_clientes(
+    db: Session = Depends(get_db)
+):
+    return crud_clientes.lista_clientes(db)
 
 
 @router.post("/", response_model=ClienteSchema)
@@ -31,25 +28,13 @@ def criar_cliente(
     cliente: ClienteCreate,
     db: Session = Depends(get_db)
 ):
+    novo_cliente = crud_clientes.criar_cliente(db, cliente)
 
-    email_existente = db.scalar(
-    select(Cliente).where(Cliente.email == cliente.email)
-)
-
-    if email_existente:
+    if not novo_cliente:
         raise HTTPException(
             status_code=400,
-            detail="Já existe um cliente com esse e-mail"
+            detail="Cliente já cadastrado"
         )
-    novo_cliente = Cliente(
-        nome=cliente.nome,
-        email=cliente.email,
-        telefone=cliente.telefone
-    )
-
-    db.add(novo_cliente)
-    db.commit()
-    db.refresh(novo_cliente)
 
     return novo_cliente
 
@@ -60,23 +45,17 @@ def atualizar_cliente(
     cliente: ClienteUpdate,
     db: Session = Depends(get_db)
 ):
-    cliente_existente = db.scalar(
-        select(Cliente).where(Cliente.id == cliente_id)
+    cliente_existente = crud_clientes.atualizar_cliente(
+        cliente_id,
+        cliente,
+        db
     )
 
     if not cliente_existente:
         raise HTTPException(
             status_code=404,
-            detail = "Cliente não encontrado"
+            detail="Cliente não encontrado"
         )
-    
-
-    cliente_existente.nome = cliente.nome
-    cliente_existente.email = cliente.email
-    cliente_existente.telefone = cliente.telefone
-
-    db.commit()
-    db.refresh(cliente_existente)
 
     return cliente_existente
 
@@ -86,8 +65,9 @@ def deletar_cliente(
     cliente_id: int,
     db: Session = Depends(get_db)
 ):
-    cliente = db.scalar(
-        select(Cliente).where(Cliente.id == cliente_id)
+    cliente = crud_clientes.deletar_cliente(
+        cliente_id,
+        db
     )
 
     if not cliente:
@@ -95,26 +75,24 @@ def deletar_cliente(
             status_code=404,
             detail="Cliente não encontrado"
         )
-        
-
-    db.delete(cliente)
-    db.commit()
 
     return {"mensagem": "Cliente deletado com sucesso"}
 
 
-
 @router.get("/{cliente_id}/locacoes")
 def listar_locacoes_cliente(
-    cliente_id:int,
+    cliente_id: int,
     db: Session = Depends(get_db)
 ):
-    cliente = db.scalar(
-        select(Cliente).where(Cliente.id == cliente_id)
+    locacoes = crud_clientes.listar_locacoes_cliente(
+        cliente_id,
+        db
     )
-    if not cliente:
+
+    if locacoes is False:
         raise HTTPException(
-            status_code = 404,
-            detail= "Cliente não encontrado"
+            status_code=404,
+            detail="Cliente não encontrado"
         )
-    return cliente.locacoes
+
+    return locacoes
