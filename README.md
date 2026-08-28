@@ -1,18 +1,22 @@
 # 🚗 API Locadora de Automóveis
 
-API REST desenvolvida em **Python** com **FastAPI**, **SQLAlchemy** e **SQLite** para gerenciamento de veículos, clientes e locações de automóveis.
+API REST desenvolvida em **Python** utilizando **FastAPI**, **SQLAlchemy**, **Pydantic** e **SQLite** para gerenciamento de veículos, clientes e locações de automóveis.
 
-O projeto foi desenvolvido como prática de **Backend, APIs REST, ORM, banco de dados relacional e integração entre entidades**.
+O projeto foi desenvolvido como prática de **Backend, APIs REST, ORM, banco de dados relacionais, validação de dados, organização de código e regras de negócio**.
+
+---
 
 ## 🎯 Objetivo
 
-Construir uma API capaz de realizar o gerenciamento de:
+Construir uma API capaz de gerenciar:
 
 * 🚗 Veículos
 * 👤 Clientes
 * 📋 Locações
 
-O projeto também utiliza relacionamentos entre as entidades para representar o funcionamento básico de uma locadora de veículos.
+A aplicação utiliza relacionamentos entre as entidades e implementa regras de negócio para controlar a disponibilidade dos veículos durante as locações.
+
+---
 
 ## 🛠️ Tecnologias utilizadas
 
@@ -24,6 +28,8 @@ O projeto também utiliza relacionamentos entre as entidades para representar o 
 * **Uvicorn**
 * **Swagger / OpenAPI**
 
+---
+
 ## 📁 Estrutura do projeto
 
 ```text
@@ -32,30 +38,54 @@ locadora-de-automoveis/
 ├── app/
 │   ├── __init__.py
 │   ├── main.py
+│   ├── database.py
 │   ├── models.py
 │   ├── schemas.py
-│   └── database.py
+│   │
+│   └── routers/
+│       ├── __init__.py
+│       ├── veiculos.py
+│       ├── clientes.py
+│       └── locacoes.py
 │
 ├── .gitignore
 ├── requirements.txt
 └── README.md
 ```
 
+A aplicação foi organizada utilizando **routers**, separando os endpoints de acordo com cada entidade.
+
+### Responsabilidade dos arquivos
+
+| Arquivo               | Responsabilidade                                  |
+| --------------------- | ------------------------------------------------- |
+| `main.py`             | Inicialização da aplicação e registro dos routers |
+| `database.py`         | Configuração do banco e gerenciamento das sessões |
+| `models.py`           | Modelos ORM e estrutura das tabelas               |
+| `schemas.py`          | Schemas Pydantic para validação dos dados         |
+| `routers/veiculos.py` | Endpoints relacionados aos veículos               |
+| `routers/clientes.py` | Endpoints relacionados aos clientes               |
+| `routers/locacoes.py` | Endpoints relacionados às locações                |
+
+---
+
 ## 🗄️ Banco de dados
 
-O projeto utiliza **SQLite** como banco de dados.
+O projeto utiliza **SQLite** como banco de dados, com **SQLAlchemy** como ORM.
 
-A conexão é configurada através do SQLAlchemy:
+A conexão utiliza:
 
 ```python
 DATABASE_URL = "sqlite:///./locadora.db"
 ```
 
-O SQLAlchemy é responsável pelo mapeamento entre as classes Python e as tabelas do banco.
+O SQLAlchemy realiza o mapeamento entre as classes Python e as tabelas do banco de dados.
 
-### Entidades
+---
 
-O banco possui três entidades principais:
+## 🧩 Entidades
+
+O sistema possui três entidades principais:
 
 ```text
 Cliente
@@ -69,9 +99,9 @@ Locacao
 Veiculo
 ```
 
-### Veiculo
+### 🚗 Veículo
 
-Representa os veículos disponíveis na locadora.
+Representa os automóveis disponíveis para locação.
 
 Campos:
 
@@ -82,7 +112,7 @@ Campos:
 * `placa`
 * `disponivel`
 
-### Cliente
+### 👤 Cliente
 
 Representa os clientes cadastrados.
 
@@ -93,7 +123,7 @@ Campos:
 * `email`
 * `telefone`
 
-### Locacao
+### 📋 Locação
 
 Representa uma locação realizada por um cliente.
 
@@ -106,33 +136,39 @@ Campos:
 * `data_fim`
 * `valor`
 
-Os campos `cliente_id` e `veiculo_id` são **Foreign Keys** que relacionam a locação com um cliente e um veículo.
+`cliente_id` e `veiculo_id` são **Foreign Keys** utilizadas para relacionar uma locação com um cliente e um veículo.
+
+---
 
 ## 🔗 Relacionamentos
 
-Foi utilizado o sistema de relacionamentos do SQLAlchemy através de `ForeignKey` e `relationship`.
+Os relacionamentos foram implementados utilizando `ForeignKey` e `relationship` do SQLAlchemy.
 
-Uma locação possui:
+Uma locação está relacionada a:
 
 ```text
 1 Cliente
 1 Veículo
 ```
 
-Enquanto um cliente ou veículo pode estar relacionado a várias locações ao longo do tempo.
+Enquanto um cliente e um veículo podem possuir várias locações ao longo do tempo.
+
+---
 
 ## 🧩 SQLAlchemy ORM
 
-O projeto utiliza o **ORM (Object-Relational Mapping)** do SQLAlchemy.
+O projeto utiliza o conceito de **ORM (Object-Relational Mapping)**.
 
-As tabelas são representadas por classes Python:
+As tabelas são representadas por classes Python.
+
+Exemplo:
 
 ```python
 class Veiculo(Base):
     __tablename__ = "veiculos"
 ```
 
-E os campos utilizam `Mapped` e `mapped_column`:
+Os campos utilizam o sistema moderno de tipagem do SQLAlchemy:
 
 ```python
 modelo: Mapped[str] = mapped_column(String(100))
@@ -155,9 +191,11 @@ Também foram utilizados:
 * `db.scalar()`
 * `db.scalars()`
 
+---
+
 ## 📦 Pydantic Schemas
 
-Foram criados schemas para controlar os dados recebidos e enviados pela API.
+Foram criados schemas específicos para controlar os dados recebidos e enviados pela API.
 
 ### Veículos
 
@@ -183,44 +221,56 @@ LocacaoCreate
 LocacaoUpdate
 ```
 
-Os schemas são utilizados pelo FastAPI para validação e definição do formato dos dados.
+Os schemas são utilizados pelo FastAPI para **validação dos dados** e definição do formato das respostas.
 
-## 🌐 API REST
+---
 
-A API foi construída utilizando FastAPI.
+# 🌐 API REST
 
-### Veículos
+A API utiliza os principais métodos HTTP:
 
-| Método | Endpoint                 | Função           |
-| ------ | ------------------------ | ---------------- |
-| GET    | `/veiculos`              | Lista veículos   |
-| POST   | `/veiculos`              | Cria veículo     |
-| PUT    | `/veiculos/{veiculo_id}` | Atualiza veículo |
-| DELETE | `/veiculos/{veiculo_id}` | Remove veículo   |
+* `GET` → consulta
+* `POST` → criação
+* `PUT` → atualização
+* `DELETE` → exclusão
 
-### Clientes
+## 🚗 Veículos
 
-| Método | Endpoint                 | Função           |
-| ------ | ------------------------ | ---------------- |
-| GET    | `/clientes`              | Lista clientes   |
-| POST   | `/clientes`              | Cria cliente     |
-| PUT    | `/clientes/{cliente_id}` | Atualiza cliente |
-| DELETE | `/clientes/{cliente_id}` | Remove cliente   |
+| Método | Endpoint                 | Função                     |
+| ------ | ------------------------ | -------------------------- |
+| GET    | `/veiculos/`             | Lista veículos             |
+| POST   | `/veiculos/`             | Cria veículo               |
+| PUT    | `/veiculos/{veiculo_id}` | Atualiza veículo           |
+| DELETE | `/veiculos/{veiculo_id}` | Remove veículo             |
+| GET    | `/veiculos/disponiveis`  | Lista veículos disponíveis |
 
-### Locações
+## 👤 Clientes
 
-| Método | Endpoint                 | Função           |
-| ------ | ------------------------ | ---------------- |
-| GET    | `/locacoes`              | Lista locações   |
-| POST   | `/locacoes`              | Cria locação     |
-| PUT    | `/locacoes/{locacao_id}` | Atualiza locação |
-| DELETE | `/locacoes/{locacao_id}` | Remove locação   |
+| Método | Endpoint                          | Função                    |
+| ------ | --------------------------------- | ------------------------- |
+| GET    | `/clientes/`                      | Lista clientes            |
+| POST   | `/clientes/`                      | Cria cliente              |
+| PUT    | `/clientes/{cliente_id}`          | Atualiza cliente          |
+| DELETE | `/clientes/{cliente_id}`          | Remove cliente            |
+| GET    | `/clientes/{cliente_id}/locacoes` | Lista locações do cliente |
 
-## ⚙️ Regras de negócio implementadas
+## 📋 Locações
 
-O projeto não possui apenas operações CRUD. Algumas regras básicas foram implementadas.
+| Método | Endpoint                          | Função           |
+| ------ | --------------------------------- | ---------------- |
+| GET    | `/locacoes/`                      | Lista locações   |
+| POST   | `/locacoes/`                      | Cria locação     |
+| PUT    | `/locacoes/{locacao_id}`          | Atualiza locação |
+| DELETE | `/locacoes/{locacao_id}`          | Remove locação   |
+| POST   | `/locacoes/{locacao_id}/devolver` | Devolve veículo  |
 
-### Criação de locação
+---
+
+# ⚙️ Regras de negócio
+
+O projeto possui regras além das operações CRUD básicas.
+
+## Criação de locação
 
 Antes de criar uma locação, a API verifica:
 
@@ -228,35 +278,59 @@ Antes de criar uma locação, a API verifica:
 2. Se o veículo existe.
 3. Se o veículo está disponível.
 
-Após a criação da locação:
+Após uma locação:
 
 ```text
 Veículo disponível
-        ↓
-    locação criada
-        ↓
+       ↓
+Locação criada
+       ↓
 Veículo indisponível
 ```
 
-### Atualização de locação
+---
 
-Ao trocar o veículo de uma locação:
+## Atualização de locação
+
+Ao alterar o veículo de uma locação, a API verifica se o novo veículo está disponível.
+
+Quando ocorre a troca:
 
 ```text
 Veículo antigo
-      ↓
+       ↓
 fica disponível
 
 Veículo novo
-      ↓
+       ↓
 fica indisponível
 ```
 
 Isso mantém o estado dos veículos consistente com as locações.
 
-### Exclusão de locação
+---
 
-Ao excluir uma locação, o veículo relacionado volta a ficar disponível.
+## Devolução de veículo
+
+Foi criado um endpoint específico para devolução:
+
+```text
+POST /locacoes/{locacao_id}/devolver
+```
+
+A API localiza a locação e o veículo relacionado e altera:
+
+```python
+veiculo.disponivel = True
+```
+
+Assim, o veículo volta a estar disponível para uma nova locação.
+
+---
+
+## Exclusão de locação
+
+Ao excluir uma locação, o veículo relacionado também é liberado:
 
 ```text
 Locação excluída
@@ -266,9 +340,83 @@ Veículo liberado
 disponivel = True
 ```
 
-## 🧪 Testes da API
+---
 
-Os endpoints podem ser testados através da documentação automática do FastAPI.
+## 🔒 Validação de dados e erros
+
+A API utiliza `HTTPException` para retornar respostas HTTP apropriadas quando ocorre algum problema.
+
+Exemplo:
+
+```python
+raise HTTPException(
+    status_code=404,
+    detail="Veículo não encontrado"
+)
+```
+
+Também existem validações para evitar situações como:
+
+* Cliente inexistente
+* Veículo inexistente
+* Locação inexistente
+* Veículo indisponível
+* E-mail de cliente duplicado
+* Placa de veículo duplicada
+
+---
+
+# 🧱 Organização com Routers
+
+A aplicação foi refatorada utilizando `APIRouter`.
+
+Em vez de concentrar todos os endpoints no `main.py`, cada entidade possui seu próprio router:
+
+```text
+main.py
+   │
+   ├── veiculos.router
+   ├── clientes.router
+   └── locacoes.router
+```
+
+Isso melhora a organização e facilita a manutenção do projeto.
+
+O `main.py` fica responsável principalmente por inicializar a aplicação e registrar os routers.
+
+---
+
+# 💉 Dependency Injection
+
+O projeto utiliza o `Depends` do FastAPI para fornecer uma sessão do banco de dados aos endpoints.
+
+Exemplo:
+
+```python
+def lista_veiculos(
+    db: Session = Depends(get_db)
+):
+```
+
+A função `get_db()` cria a sessão e garante seu fechamento após a utilização:
+
+```python
+def get_db():
+    db = SessionLocal()
+
+    try:
+        yield db
+    finally:
+        db.close()
+```
+
+Dessa forma, a criação e o encerramento das sessões são centralizados.
+
+---
+
+# 🧪 Testes da API
+
+Os endpoints podem ser testados utilizando a documentação automática do FastAPI.
 
 Após iniciar o servidor:
 
@@ -276,13 +424,13 @@ Após iniciar o servidor:
 python -m uvicorn app.main:app --reload
 ```
 
-acesse:
+A documentação pode ser acessada em:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-O Swagger permite testar diretamente:
+O Swagger permite testar diretamente os endpoints utilizando:
 
 * GET
 * POST
@@ -291,29 +439,39 @@ O Swagger permite testar diretamente:
 
 sem necessidade de um frontend.
 
-## ▶️ Como executar
+---
 
-### 1. Instalar as dependências
+# ▶️ Como executar
+
+## 1. Instalar as dependências
 
 ```bash
 pip install fastapi sqlalchemy uvicorn
 ```
 
-### 2. Executar a aplicação
+Ou utilizando o arquivo de dependências:
 
-A partir da pasta raiz do projeto:
+```bash
+pip install -r requirements.txt
+```
+
+## 2. Executar a aplicação
+
+A partir da pasta raiz:
 
 ```bash
 python -m uvicorn app.main:app --reload
 ```
 
-### 3. Acessar a documentação
+## 3. Acessar a documentação
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-## 📚 Conceitos praticados
+---
+
+# 📚 Conceitos praticados
 
 Durante o desenvolvimento foram praticados:
 
@@ -334,40 +492,81 @@ Durante o desenvolvimento foram praticados:
 * JSON
 * Pydantic
 * Schemas
-* Dependency Injection com `Depends`
+* Dependency Injection
+* `Depends`
 * Validação de dados
+* `HTTPException`
 * Regras de negócio
+* Routers
+* Organização de projetos Python
 * Swagger / OpenAPI
-* Organização de projeto Python
 
-## 🚀 Próximos passos
+---
 
-O projeto ainda pode evoluir para uma aplicação de backend mais completa.
+# 🚀 Próximos passos
 
-Possíveis melhorias:
+O projeto já possui uma estrutura funcional de backend. Os próximos passos serão focados em melhorar qualidade, arquitetura e recursos.
 
-* [ ] Melhorar tratamento de erros utilizando `HTTPException`
-* [ ] Adicionar validações mais completas
-* [ ] Impedir placas e e-mails duplicados
+### Refatoração
+
+* [ ] Criar camada `crud/`
+* [ ] Separar lógica de acesso ao banco dos routers
+* [ ] Melhorar organização das regras de negócio
+
+### Validação
+
 * [ ] Validar datas das locações
-* [ ] Criar endpoint específico para devolução de veículos
-* [ ] Criar consultas de locações por cliente
-* [ ] Criar endpoint para listar veículos disponíveis
-* [ ] Melhorar a organização do código em `routers` e `crud`
-* [ ] Adicionar testes automatizados
-* [ ] Migrar de SQLite para PostgreSQL
+* [ ] Impedir datas inválidas
+* [ ] Melhorar validações dos schemas
+* [ ] Melhorar tratamento de possíveis erros de banco
+
+### Qualidade
+
+* [ ] Criar testes automatizados
+* [ ] Criar testes dos endpoints
+* [ ] Testar regras de negócio
+* [ ] Melhorar documentação da API
+
+### Evolução do backend
+
+* [ ] Migrar SQLite para PostgreSQL
 * [ ] Adicionar autenticação
+* [ ] Adicionar usuários e permissões
+* [ ] Implementar paginação
+* [ ] Adicionar filtros e buscas
+
+### Integração
+
 * [ ] Criar frontend para consumir a API
+* [ ] Integrar com JavaScript
+* [ ] Criar dashboard
 * [ ] Realizar deploy da aplicação
 
-## 📌 Status
+---
 
-**Em desenvolvimento — etapa de aprendizado de Backend e APIs.**
+# 📌 Status
 
-O projeto já possui uma API funcional com **FastAPI + SQLAlchemy + SQLite**, CRUD completo para veículos, clientes e locações, além de relacionamentos e regras básicas de negócio.
+**Em desenvolvimento — Projeto de estudo de Backend e APIs REST.**
+
+O projeto já possui uma API funcional utilizando **FastAPI + SQLAlchemy + SQLite**, com:
+
+* CRUD de veículos
+* CRUD de clientes
+* CRUD de locações
+* Relacionamentos entre entidades
+* Validação com Pydantic
+* Tratamento de erros com `HTTPException`
+* Controle de disponibilidade dos veículos
+* Endpoint de devolução
+* Consulta de locações por cliente
+* Consulta de veículos disponíveis
+* Organização utilizando routers
+* Dependency Injection para sessões do banco
+
+O próximo estágio será evoluir a arquitetura com uma camada **CRUD**, adicionar testes automatizados e posteriormente integrar a API com um frontend.
 
 ---
 
 ## 👨‍💻 Projeto de estudo
 
-Projeto desenvolvido com o objetivo de consolidar conhecimentos de **Python, bancos de dados, APIs REST e desenvolvimento Backend**, servindo como parte da evolução prática em programação.
+Projeto desenvolvido para consolidar conhecimentos práticos de **Python, SQLAlchemy, bancos de dados relacionais, APIs REST e desenvolvimento Backend**, servindo como etapa de evolução para projetos mais completos e aplicações profissionais.
