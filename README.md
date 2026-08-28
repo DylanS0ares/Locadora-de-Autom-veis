@@ -1,20 +1,23 @@
 # 🚗 API Locadora de Automóveis
 
-API REST desenvolvida em **Python** utilizando **FastAPI**, **SQLAlchemy**, **Pydantic** e **SQLite** para gerenciamento de veículos, clientes e locações de automóveis.
+API REST desenvolvida em **Python** utilizando **FastAPI, SQLAlchemy, Pydantic e SQLite** para gerenciamento de veículos, clientes e locações.
 
-O projeto foi desenvolvido como prática de **Backend, APIs REST, ORM, banco de dados relacionais, validação de dados, organização de código e regras de negócio**.
+O projeto foi desenvolvido com foco em prática de **Backend, APIs REST, ORM, bancos de dados relacionais, validação de dados, CRUD, organização de código e implementação de regras de negócio**.
 
 ---
 
 ## 🎯 Objetivo
 
-Construir uma API capaz de gerenciar:
+Construir uma API para gerenciamento de uma locadora de automóveis, permitindo:
 
-* 🚗 Veículos
-* 👤 Clientes
-* 📋 Locações
+* 🚗 Cadastro e gerenciamento de veículos
+* 👤 Cadastro e gerenciamento de clientes
+* 📋 Criação e gerenciamento de locações
+* 🔄 Controle da disponibilidade dos veículos
+* ↩️ Devolução de veículos
+* 🔗 Consulta das locações de um cliente
 
-A aplicação utiliza relacionamentos entre as entidades e implementa regras de negócio para controlar a disponibilidade dos veículos durante as locações.
+A aplicação utiliza relacionamentos entre as entidades e regras de negócio para manter a consistência das locações e da disponibilidade dos veículos.
 
 ---
 
@@ -34,6 +37,7 @@ A aplicação utiliza relacionamentos entre as entidades e implementa regras de 
 
 ```text
 locadora-de-automoveis/
+
 │
 ├── app/
 │   ├── __init__.py
@@ -41,6 +45,12 @@ locadora-de-automoveis/
 │   ├── database.py
 │   ├── models.py
 │   ├── schemas.py
+│   │
+│   ├── crud/
+│   │   ├── __init__.py
+│   │   ├── veiculos.py
+│   │   ├── clientes.py
+│   │   └── locacoes.py
 │   │
 │   └── routers/
 │       ├── __init__.py
@@ -53,25 +63,75 @@ locadora-de-automoveis/
 └── README.md
 ```
 
-A aplicação foi organizada utilizando **routers**, separando os endpoints de acordo com cada entidade.
+A aplicação utiliza uma separação de responsabilidades entre **routers** e **CRUDs**.
 
 ### Responsabilidade dos arquivos
 
-| Arquivo               | Responsabilidade                                  |
-| --------------------- | ------------------------------------------------- |
-| `main.py`             | Inicialização da aplicação e registro dos routers |
-| `database.py`         | Configuração do banco e gerenciamento das sessões |
-| `models.py`           | Modelos ORM e estrutura das tabelas               |
-| `schemas.py`          | Schemas Pydantic para validação dos dados         |
-| `routers/veiculos.py` | Endpoints relacionados aos veículos               |
-| `routers/clientes.py` | Endpoints relacionados aos clientes               |
-| `routers/locacoes.py` | Endpoints relacionados às locações                |
+| Arquivo               | Responsabilidade                                     |
+| --------------------- | ---------------------------------------------------- |
+| `main.py`             | Inicialização da aplicação e registro dos routers    |
+| `database.py`         | Configuração do banco e gerenciamento das sessões    |
+| `models.py`           | Modelos ORM e estrutura das tabelas                  |
+| `schemas.py`          | Schemas Pydantic para validação dos dados            |
+| `crud/veiculos.py`    | Operações de banco relacionadas aos veículos         |
+| `crud/clientes.py`    | Operações de banco relacionadas aos clientes         |
+| `crud/locacoes.py`    | Operações de banco e regras relacionadas às locações |
+| `routers/veiculos.py` | Endpoints HTTP relacionados aos veículos             |
+| `routers/clientes.py` | Endpoints HTTP relacionados aos clientes             |
+| `routers/locacoes.py` | Endpoints HTTP relacionados às locações              |
+
+---
+
+## 🏗️ Arquitetura
+
+A aplicação segue uma separação simples entre as responsabilidades:
+
+```text
+                     main.py
+                        │
+          ┌─────────────┼─────────────┐
+          ↓             ↓             ↓
+      Veículos       Clientes      Locações
+       Router         Router        Router
+          │             │             │
+          ↓             ↓             ↓
+        CRUD           CRUD          CRUD
+          │             │             │
+          └─────────────┼─────────────┘
+                        ↓
+                   SQLAlchemy
+                        ↓
+                     SQLite
+```
+
+### Routers
+
+Os routers são responsáveis por:
+
+* Receber requisições HTTP
+* Receber dados através dos schemas
+* Chamar as funções da camada CRUD
+* Tratar erros HTTP
+* Retornar as respostas da API
+
+### CRUD
+
+A camada `crud/` concentra as operações relacionadas ao banco de dados, como:
+
+* Consultas
+* Inserções
+* Atualizações
+* Exclusões
+* Alterações de disponibilidade
+* Regras relacionadas às operações das entidades
+
+Dessa forma, a lógica de acesso ao banco não fica concentrada nos routers.
 
 ---
 
 ## 🗄️ Banco de dados
 
-O projeto utiliza **SQLite** como banco de dados, com **SQLAlchemy** como ORM.
+O projeto utiliza **SQLite** como banco de dados e **SQLAlchemy** como ORM.
 
 A conexão utiliza:
 
@@ -101,7 +161,7 @@ Veiculo
 
 ### 🚗 Veículo
 
-Representa os automóveis disponíveis para locação.
+Representa os veículos disponíveis para locação.
 
 Campos:
 
@@ -114,7 +174,7 @@ Campos:
 
 ### 👤 Cliente
 
-Representa os clientes cadastrados.
+Representa os clientes cadastrados no sistema.
 
 Campos:
 
@@ -144,27 +204,24 @@ Campos:
 
 Os relacionamentos foram implementados utilizando `ForeignKey` e `relationship` do SQLAlchemy.
 
-Uma locação está relacionada a:
+Uma locação pertence a:
 
-```text
-1 Cliente
-1 Veículo
-```
+* 1 cliente
+* 1 veículo
 
-Enquanto um cliente e um veículo podem possuir várias locações ao longo do tempo.
+Enquanto um cliente e um veículo podem estar relacionados a várias locações ao longo do tempo.
 
 ---
 
 ## 🧩 SQLAlchemy ORM
 
-O projeto utiliza o conceito de **ORM (Object-Relational Mapping)**.
-
-As tabelas são representadas por classes Python.
+O projeto utiliza **ORM (Object-Relational Mapping)** para representar as tabelas do banco através de classes Python.
 
 Exemplo:
 
 ```python
 class Veiculo(Base):
+
     __tablename__ = "veiculos"
 ```
 
@@ -174,7 +231,7 @@ Os campos utilizam o sistema moderno de tipagem do SQLAlchemy:
 modelo: Mapped[str] = mapped_column(String(100))
 ```
 
-Também foram utilizados:
+Também foram utilizados conceitos e recursos como:
 
 * `DeclarativeBase`
 * `Mapped`
@@ -184,7 +241,6 @@ Também foram utilizados:
 * `Session`
 * `select`
 * `db.add()`
-* `db.add_all()`
 * `db.commit()`
 * `db.refresh()`
 * `db.delete()`
@@ -229,20 +285,23 @@ Os schemas são utilizados pelo FastAPI para **validação dos dados** e defini�
 
 A API utiliza os principais métodos HTTP:
 
-* `GET` → consulta
-* `POST` → criação
-* `PUT` → atualização
-* `DELETE` → exclusão
+| Método   | Utilização  |
+| -------- | ----------- |
+| `GET`    | Consulta    |
+| `POST`   | Criação     |
+| `PUT`    | Atualização |
+| `DELETE` | Exclusão    |
 
 ## 🚗 Veículos
 
 | Método | Endpoint                 | Função                     |
 | ------ | ------------------------ | -------------------------- |
 | GET    | `/veiculos/`             | Lista veículos             |
+| GET    | `/veiculos/{veiculo_id}` | Busca veículo por ID       |
+| GET    | `/veiculos/disponiveis`  | Lista veículos disponíveis |
 | POST   | `/veiculos/`             | Cria veículo               |
 | PUT    | `/veiculos/{veiculo_id}` | Atualiza veículo           |
 | DELETE | `/veiculos/{veiculo_id}` | Remove veículo             |
-| GET    | `/veiculos/disponiveis`  | Lista veículos disponíveis |
 
 ## 👤 Clientes
 
@@ -268,7 +327,7 @@ A API utiliza os principais métodos HTTP:
 
 # ⚙️ Regras de negócio
 
-O projeto possui regras além das operações CRUD básicas.
+Além das operações CRUD, a API possui regras específicas para o funcionamento da locadora.
 
 ## Criação de locação
 
@@ -278,7 +337,7 @@ Antes de criar uma locação, a API verifica:
 2. Se o veículo existe.
 3. Se o veículo está disponível.
 
-Após uma locação:
+Após uma locação, o veículo passa automaticamente para indisponível:
 
 ```text
 Veículo disponível
@@ -292,7 +351,9 @@ Veículo indisponível
 
 ## Atualização de locação
 
-Ao alterar o veículo de uma locação, a API verifica se o novo veículo está disponível.
+Ao alterar uma locação, a API verifica se o cliente e o novo veículo existem.
+
+Caso o veículo seja alterado, o sistema verifica sua disponibilidade.
 
 Quando ocorre a troca:
 
@@ -318,19 +379,19 @@ Foi criado um endpoint específico para devolução:
 POST /locacoes/{locacao_id}/devolver
 ```
 
-A API localiza a locação e o veículo relacionado e altera:
+A API localiza a locação e o veículo relacionado e altera sua disponibilidade:
 
 ```python
 veiculo.disponivel = True
 ```
 
-Assim, o veículo volta a estar disponível para uma nova locação.
+O veículo pode então ser utilizado em uma nova locação.
 
 ---
 
 ## Exclusão de locação
 
-Ao excluir uma locação, o veículo relacionado também é liberado:
+Ao excluir uma locação, o veículo relacionado é liberado:
 
 ```text
 Locação excluída
@@ -342,9 +403,9 @@ disponivel = True
 
 ---
 
-## 🔒 Validação de dados e erros
+## 🔒 Validação e tratamento de erros
 
-A API utiliza `HTTPException` para retornar respostas HTTP apropriadas quando ocorre algum problema.
+A API utiliza `HTTPException` para retornar respostas HTTP adequadas quando ocorre algum problema.
 
 Exemplo:
 
@@ -355,7 +416,7 @@ raise HTTPException(
 )
 ```
 
-Também existem validações para evitar situações como:
+São tratadas situações como:
 
 * Cliente inexistente
 * Veículo inexistente
@@ -366,11 +427,9 @@ Também existem validações para evitar situações como:
 
 ---
 
-# 🧱 Organização com Routers
+# 🧱 Routers e CRUD
 
-A aplicação foi refatorada utilizando `APIRouter`.
-
-Em vez de concentrar todos os endpoints no `main.py`, cada entidade possui seu próprio router:
+A aplicação foi organizada utilizando `APIRouter`, separando os endpoints por entidade.
 
 ```text
 main.py
@@ -380,15 +439,29 @@ main.py
    └── locacoes.router
 ```
 
-Isso melhora a organização e facilita a manutenção do projeto.
+Cada router recebe as requisições relacionadas à sua entidade e delega as operações de banco para sua respectiva camada CRUD.
 
-O `main.py` fica responsável principalmente por inicializar a aplicação e registrar os routers.
+Exemplo:
+
+```text
+POST /veiculos/
+       ↓
+routers/veiculos.py
+       ↓
+crud/veiculos.py
+       ↓
+SQLAlchemy
+       ↓
+SQLite
+```
+
+Essa separação facilita a manutenção e permite que a lógica de acesso ao banco seja reutilizada por diferentes endpoints.
 
 ---
 
 # 💉 Dependency Injection
 
-O projeto utiliza o `Depends` do FastAPI para fornecer uma sessão do banco de dados aos endpoints.
+O projeto utiliza `Depends` do FastAPI para fornecer uma sessão do banco de dados aos endpoints.
 
 Exemplo:
 
@@ -398,10 +471,11 @@ def lista_veiculos(
 ):
 ```
 
-A função `get_db()` cria a sessão e garante seu fechamento após a utilização:
+A função `get_db()` cria a sessão e garante seu encerramento:
 
 ```python
 def get_db():
+
     db = SessionLocal()
 
     try:
@@ -410,13 +484,13 @@ def get_db():
         db.close()
 ```
 
-Dessa forma, a criação e o encerramento das sessões são centralizados.
+Dessa forma, o gerenciamento das sessões do banco fica centralizado.
 
 ---
 
-# 🧪 Testes da API
+# 🧪 Testando a API
 
-Os endpoints podem ser testados utilizando a documentação automática do FastAPI.
+Os endpoints podem ser testados através da documentação automática do FastAPI.
 
 Após iniciar o servidor:
 
@@ -424,46 +498,38 @@ Após iniciar o servidor:
 python -m uvicorn app.main:app --reload
 ```
 
-A documentação pode ser acessada em:
+Acesse:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-O Swagger permite testar diretamente os endpoints utilizando:
-
-* GET
-* POST
-* PUT
-* DELETE
-
-sem necessidade de um frontend.
+O Swagger permite executar os endpoints diretamente pelo navegador, sem necessidade de um frontend.
 
 ---
 
 # ▶️ Como executar
 
-## 1. Instalar as dependências
+## 1. Clone o projeto
 
 ```bash
-pip install fastapi sqlalchemy uvicorn
+git clone https://github.com/DylanS0ares/Locadora-de-Autom-veis.git
+cd Locadora-de-Autom-veis
 ```
 
-Ou utilizando o arquivo de dependências:
+## 2. Instale as dependências
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 2. Executar a aplicação
-
-A partir da pasta raiz:
+## 3. Execute a aplicação
 
 ```bash
 python -m uvicorn app.main:app --reload
 ```
 
-## 3. Acessar a documentação
+## 4. Acesse a documentação
 
 ```text
 http://127.0.0.1:8000/docs
@@ -505,14 +571,6 @@ Durante o desenvolvimento foram praticados:
 
 # 🚀 Próximos passos
 
-O projeto já possui uma estrutura funcional de backend. Os próximos passos serão focados em melhorar qualidade, arquitetura e recursos.
-
-### Refatoração
-
-* [ ] Criar camada `crud/`
-* [ ] Separar lógica de acesso ao banco dos routers
-* [ ] Melhorar organização das regras de negócio
-
 ### Validação
 
 * [ ] Validar datas das locações
@@ -534,6 +592,7 @@ O projeto já possui uma estrutura funcional de backend. Os próximos passos ser
 * [ ] Adicionar usuários e permissões
 * [ ] Implementar paginação
 * [ ] Adicionar filtros e buscas
+* [ ] Melhorar separação das regras de negócio
 
 ### Integração
 
@@ -548,25 +607,27 @@ O projeto já possui uma estrutura funcional de backend. Os próximos passos ser
 
 **Em desenvolvimento — Projeto de estudo de Backend e APIs REST.**
 
-O projeto já possui uma API funcional utilizando **FastAPI + SQLAlchemy + SQLite**, com:
+O projeto atualmente possui:
 
-* CRUD de veículos
-* CRUD de clientes
-* CRUD de locações
-* Relacionamentos entre entidades
-* Validação com Pydantic
-* Tratamento de erros com `HTTPException`
-* Controle de disponibilidade dos veículos
-* Endpoint de devolução
-* Consulta de locações por cliente
-* Consulta de veículos disponíveis
-* Organização utilizando routers
-* Dependency Injection para sessões do banco
+* ✅ CRUD de veículos
+* ✅ CRUD de clientes
+* ✅ CRUD de locações
+* ✅ Camada CRUD para separação da lógica de banco
+* ✅ Routers organizados por entidade
+* ✅ Relacionamentos entre entidades
+* ✅ Validação com Pydantic
+* ✅ Tratamento de erros com `HTTPException`
+* ✅ Controle de disponibilidade dos veículos
+* ✅ Endpoint de devolução
+* ✅ Consulta de locações por cliente
+* ✅ Consulta de veículos disponíveis
+* ✅ Dependency Injection para sessões do banco
+* ✅ Documentação automática com Swagger / OpenAPI
 
-O próximo estágio será evoluir a arquitetura com uma camada **CRUD**, adicionar testes automatizados e posteriormente integrar a API com um frontend.
+Os próximos passos serão focados em **testes automatizados, melhoria das validações, evolução das regras de negócio e integração com um frontend**.
 
 ---
 
 ## 👨‍💻 Projeto de estudo
 
-Projeto desenvolvido para consolidar conhecimentos práticos de **Python, SQLAlchemy, bancos de dados relacionais, APIs REST e desenvolvimento Backend**, servindo como etapa de evolução para projetos mais completos e aplicações profissionais.
+Projeto desenvolvido para consolidar conhecimentos práticos de **Python, desenvolvimento Backend, APIs REST, SQLAlchemy e bancos de dados relacionais**, servindo como etapa de evolução para aplicações mais completas e projetos profissionais.
