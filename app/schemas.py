@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,Field,model_validator
 from datetime import datetime
 
 class VeiculoSchema(BaseModel):
@@ -9,10 +9,10 @@ class VeiculoSchema(BaseModel):
     disponivel : bool
 
 class VeiculoCreate(BaseModel):
-    modelo : str
-    marca : str
-    ano : int
-    placa : str
+    modelo : str = Field(min_length=2)
+    marca : str = Field(min_length=2)
+    ano : int = Field(ge=1900, le=2026)
+    placa : str = Field(min_length=7,max_length=7)
     disponivel : bool = True
 
 class VeiculoUpdate(BaseModel):
@@ -52,7 +52,16 @@ class LocacaoCreate(BaseModel):
     veiculo_id:int
     data_inicio: datetime
     data_fim: datetime
-    valor: float
+    valor: float = Field(gt=0)
+
+    @model_validator(mode="after")
+
+    def validar_datas(self):
+        if self.data<=self.data_inicio:
+            raise ValueError(
+                "A data de fim deve ser posterior à data de início"
+            )
+        return self
 
 class LocacaoUpdate(BaseModel):
     cliente_id: int
