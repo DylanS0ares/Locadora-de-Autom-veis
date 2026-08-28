@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from crud import clientes as crud_clientes
+from ..crud import clientes as crud_clientes
 from ..database import get_db
 from ..schemas import (
     ClienteSchema,

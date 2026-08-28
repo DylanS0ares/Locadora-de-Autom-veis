@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from crud import locacoes as crud_locacoes
+from ..crud import locacoes as crud_locacoes
 from ..database import get_db
 from ..schemas import (
     LocacaoSchema,
