@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 
 from app.models import Veiculo
@@ -30,8 +31,12 @@ def criar_veiculo(db:Session, veiculo: VeiculoCreate):
     )
 
     db.add(novo_veiculo)
-    db.commit()
-    db.refresh(novo_veiculo)
+    try:
+        db.commit()
+        db.refresh(novo_veiculo)
+    except:
+        db.rollback()
+        return None
 
     return novo_veiculo   
 

@@ -28,12 +28,15 @@ def criar_cliente(
     cliente: ClienteCreate,
     db: Session = Depends(get_db)
 ):
-    novo_cliente = crud_clientes.criar_cliente(db, cliente)
+    novo_cliente = crud_clientes.criar_cliente(
+        db,
+        cliente
+    )
 
-    if not novo_cliente:
+    if novo_cliente is None:
         raise HTTPException(
-            status_code=400,
-            detail="Cliente já cadastrado"
+            status_code=409,
+            detail="Já existe um cliente com esse e-mail"
         )
 
     return novo_cliente
@@ -51,10 +54,16 @@ def atualizar_cliente(
         db
     )
 
-    if not cliente_existente:
+    if cliente_existente is False:
         raise HTTPException(
             status_code=404,
             detail="Cliente não encontrado"
+        )
+
+    if cliente_existente is None:
+        raise HTTPException(
+            status_code=409,
+            detail="Já existe um cliente com esse e-mail"
         )
 
     return cliente_existente
@@ -65,18 +74,26 @@ def deletar_cliente(
     cliente_id: int,
     db: Session = Depends(get_db)
 ):
-    cliente = crud_clientes.deletar_cliente(
+    resultado = crud_clientes.deletar_cliente(
         cliente_id,
         db
     )
 
-    if not cliente:
+    if resultado is False:
         raise HTTPException(
             status_code=404,
             detail="Cliente não encontrado"
         )
 
-    return {"mensagem": "Cliente deletado com sucesso"}
+    if resultado is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Erro ao deletar cliente"
+        )
+
+    return {
+        "mensagem": "Cliente deletado com sucesso"
+    }
 
 
 @router.get("/{cliente_id}/locacoes")
@@ -89,7 +106,7 @@ def listar_locacoes_cliente(
         db
     )
 
-    if locacoes is False:
+    if locacoes is None:
         raise HTTPException(
             status_code=404,
             detail="Cliente não encontrado"

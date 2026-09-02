@@ -47,8 +47,14 @@ def criar_locacao(
 
     if resultado == "veiculo_indisponivel":
         raise HTTPException(
-            status_code=400,
+            status_code=409,
             detail="Veículo não disponível"
+        )
+
+    if resultado == "erro_banco":
+        raise HTTPException(
+            status_code=500,
+            detail="Erro ao criar locação"
         )
 
     return resultado
@@ -86,8 +92,14 @@ def atualizar_locacao(
 
     if resultado == "veiculo_indisponivel":
         raise HTTPException(
-            status_code=400,
+            status_code=409,
             detail="Veículo não disponível"
+        )
+
+    if resultado == "erro_banco":
+        raise HTTPException(
+            status_code=500,
+            detail="Erro ao atualizar locação"
         )
 
     return resultado
@@ -107,6 +119,12 @@ def deletar_locacao(
         raise HTTPException(
             status_code=404,
             detail="Locação não encontrada"
+        )
+
+    if resultado == "erro_banco":
+        raise HTTPException(
+            status_code=500,
+            detail="Erro ao deletar locação"
         )
 
     return {
@@ -138,8 +156,14 @@ def devolver_veiculo(
 
     if resultado == "veiculo_ja_disponivel":
         raise HTTPException(
-            status_code=400,
+            status_code=409,
             detail="Esse veículo já está disponível"
+        )
+
+    if resultado == "erro_banco":
+        raise HTTPException(
+            status_code=500,
+            detail="Erro ao devolver veículo"
         )
 
     return {

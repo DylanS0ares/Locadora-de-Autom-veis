@@ -2,27 +2,19 @@ from app.models import Cliente
 from app.schemas import ClienteCreate, ClienteUpdate
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 
 def lista_clientes(db: Session):
-    clientes = db.scalars(
+    return db.scalars(
         select(Cliente)
     ).all()
-
-    return clientes
 
 
 def criar_cliente(
     db: Session,
     cliente: ClienteCreate
 ):
-    email_existente = db.scalar(
-        select(Cliente).where(Cliente.email == cliente.email)
-    )
-
-    if email_existente:
-        return None
-
     novo_cliente = Cliente(
         nome=cliente.nome,
         email=cliente.email,
@@ -30,8 +22,14 @@ def criar_cliente(
     )
 
     db.add(novo_cliente)
-    db.commit()
-    db.refresh(novo_cliente)
+
+    try:
+        db.commit()
+        db.refresh(novo_cliente)
+
+    except IntegrityError:
+        db.rollback()
+        return None
 
     return novo_cliente
 
@@ -52,8 +50,13 @@ def atualizar_cliente(
     cliente_existente.email = cliente.email
     cliente_existente.telefone = cliente.telefone
 
-    db.commit()
-    db.refresh(cliente_existente)
+    try:
+        db.commit()
+        db.refresh(cliente_existente)
+
+    except IntegrityError:
+        db.rollback()
+        return None
 
     return cliente_existente
 
@@ -70,7 +73,13 @@ def deletar_cliente(
         return False
 
     db.delete(cliente)
-    db.commit()
+
+    try:
+        db.commit()
+
+    except IntegrityError:
+        db.rollback()
+        return None
 
     return True
 
@@ -84,6 +93,6 @@ def listar_locacoes_cliente(
     )
 
     if not cliente:
-        return False
+        return None
 
     return cliente.locacoes

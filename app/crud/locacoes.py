@@ -1,16 +1,15 @@
 from app.models import Locacao, Cliente, Veiculo
 from app.schemas import LocacaoCreate, LocacaoUpdate
 
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 
 def lista_locacoes(db: Session):
-    locacoes = db.scalars(
+    return db.scalars(
         select(Locacao)
     ).all()
-
-    return locacoes
 
 
 def criar_locacao(
@@ -49,8 +48,14 @@ def criar_locacao(
     veiculo.disponivel = False
 
     db.add(nova_locacao)
-    db.commit()
-    db.refresh(nova_locacao)
+
+    try:
+        db.commit()
+        db.refresh(nova_locacao)
+
+    except IntegrityError:
+        db.rollback()
+        return "erro_banco"
 
     return nova_locacao
 
@@ -109,8 +114,13 @@ def atualizar_locacao(
     locacao_existente.data_fim = locacao.data_fim
     locacao_existente.valor = locacao.valor
 
-    db.commit()
-    db.refresh(locacao_existente)
+    try:
+        db.commit()
+        db.refresh(locacao_existente)
+
+    except IntegrityError:
+        db.rollback()
+        return "erro_banco"
 
     return locacao_existente
 
@@ -138,7 +148,13 @@ def deletar_locacao(
         veiculo.disponivel = True
 
     db.delete(locacao)
-    db.commit()
+
+    try:
+        db.commit()
+
+    except IntegrityError:
+        db.rollback()
+        return "erro_banco"
 
     return True
 
@@ -170,7 +186,12 @@ def devolver_veiculo(
 
     veiculo.disponivel = True
 
-    db.commit()
-    db.refresh(veiculo)
+    try:
+        db.commit()
+        db.refresh(veiculo)
+
+    except IntegrityError:
+        db.rollback()
+        return "erro_banco"
 
     return veiculo

@@ -2,7 +2,7 @@
 
 API REST desenvolvida em **Python** utilizando **FastAPI, SQLAlchemy, Pydantic e SQLite** para gerenciamento de veículos, clientes e locações.
 
-O projeto foi desenvolvido com foco em prática de **Backend, APIs REST, ORM, bancos de dados relacionais, validação de dados, CRUD, organização de código e implementação de regras de negócio**.
+O projeto foi desenvolvido com foco na prática de **Backend, APIs REST, ORM, bancos de dados relacionais, validação de dados, testes automatizados, CRUD, organização de código e implementação de regras de negócio**.
 
 ---
 
@@ -29,6 +29,8 @@ A aplicação utiliza relacionamentos entre as entidades e regras de negócio pa
 * **Pydantic**
 * **SQLite**
 * **Uvicorn**
+* **Pytest**
+* **HTTPX**
 * **Swagger / OpenAPI**
 
 ---
@@ -58,6 +60,13 @@ locadora-de-automoveis/
 │       ├── clientes.py
 │       └── locacoes.py
 │
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── test_veiculos.py
+│   ├── test_clientes.py
+│   └── test_locacoes.py
+│
 ├── .gitignore
 ├── requirements.txt
 └── README.md
@@ -79,6 +88,7 @@ A aplicação utiliza uma separação de responsabilidades entre **routers** e *
 | `routers/veiculos.py` | Endpoints HTTP relacionados aos veículos             |
 | `routers/clientes.py` | Endpoints HTTP relacionados aos clientes             |
 | `routers/locacoes.py` | Endpoints HTTP relacionados às locações              |
+| `tests/`              | Testes automatizados da aplicação                    |
 
 ---
 
@@ -279,6 +289,16 @@ LocacaoUpdate
 
 Os schemas são utilizados pelo FastAPI para **validação dos dados** e definição do formato das respostas.
 
+Entre as validações implementadas estão:
+
+* Formato e tamanho da placa
+* E-mail válido
+* Telefone válido
+* Ano do veículo
+* Valor da locação maior que zero
+* Data de início não pode estar no passado
+* Data de início deve ser anterior à data de fim
+
 ---
 
 # 🌐 API REST
@@ -337,7 +357,7 @@ Antes de criar uma locação, a API verifica:
 2. Se o veículo existe.
 3. Se o veículo está disponível.
 
-Após uma locação, o veículo passa automaticamente para indisponível:
+Após uma locação, o veículo passa automaticamente para indisponível.
 
 ```text
 Veículo disponível
@@ -424,6 +444,9 @@ São tratadas situações como:
 * Veículo indisponível
 * E-mail de cliente duplicado
 * Placa de veículo duplicada
+* Dados de entrada inválidos
+* Datas de locação inválidas
+* Erros de integridade do banco
 
 ---
 
@@ -488,9 +511,56 @@ Dessa forma, o gerenciamento das sessões do banco fica centralizado.
 
 ---
 
-# 🧪 Testando a API
+# 🧪 Testes automatizados
 
-Os endpoints podem ser testados através da documentação automática do FastAPI.
+O projeto utiliza **Pytest** para testar os endpoints e as principais regras de negócio da aplicação.
+
+A estrutura dos testes é:
+
+```text
+tests/
+├── conftest.py
+├── test_veiculos.py
+├── test_clientes.py
+└── test_locacoes.py
+```
+
+O `conftest.py` configura o ambiente de testes e fornece um `TestClient` para realizar requisições à API.
+
+Os testes utilizam um **banco SQLite temporário**, separado do banco utilizado pela aplicação durante o desenvolvimento.
+
+Dessa forma, os testes não modificam os dados do banco principal.
+
+### Principais comportamentos testados
+
+* Criação de veículos
+* Consulta de veículos
+* Atualização de veículos
+* Exclusão de veículos
+* Criação de clientes
+* Atualização de clientes
+* Exclusão de clientes
+* Criação de locações
+* Atualização de locações
+* Exclusão de locações
+* Validação de veículos indisponíveis
+* Devolução de veículos
+* Regras de negócio das locações
+* Validações de entrada
+
+### Executando os testes
+
+Na raiz do projeto:
+
+```bash
+pytest
+```
+
+---
+
+# 📖 Documentação da API
+
+A aplicação utiliza **Swagger / OpenAPI** através do FastAPI.
 
 Após iniciar o servidor:
 
@@ -498,13 +568,13 @@ Após iniciar o servidor:
 python -m uvicorn app.main:app --reload
 ```
 
-Acesse:
+A documentação pode ser acessada em:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-O Swagger permite executar os endpoints diretamente pelo navegador, sem necessidade de um frontend.
+O Swagger permite visualizar os endpoints, schemas, parâmetros e executar requisições diretamente pelo navegador.
 
 ---
 
@@ -533,6 +603,12 @@ python -m uvicorn app.main:app --reload
 
 ```text
 http://127.0.0.1:8000/docs
+```
+
+## 5. Execute os testes
+
+```bash
+pytest
 ```
 
 ---
@@ -566,24 +642,15 @@ Durante o desenvolvimento foram praticados:
 * Routers
 * Organização de projetos Python
 * Swagger / OpenAPI
+* Pytest
+* Testes automatizados
+* Fixtures
+* `TestClient`
+* Banco de dados temporário para testes
 
 ---
 
 # 🚀 Próximos passos
-
-### Validação
-
-* [ ] Validar datas das locações
-* [ ] Impedir datas inválidas
-* [ ] Melhorar validações dos schemas
-* [ ] Melhorar tratamento de possíveis erros de banco
-
-### Qualidade
-
-* [ ] Criar testes automatizados
-* [ ] Criar testes dos endpoints
-* [ ] Testar regras de negócio
-* [ ] Melhorar documentação da API
 
 ### Evolução do backend
 
@@ -593,6 +660,7 @@ Durante o desenvolvimento foram praticados:
 * [ ] Implementar paginação
 * [ ] Adicionar filtros e buscas
 * [ ] Melhorar separação das regras de negócio
+* [ ] Aumentar a cobertura de testes
 
 ### Integração
 
@@ -616,18 +684,24 @@ O projeto atualmente possui:
 * ✅ Routers organizados por entidade
 * ✅ Relacionamentos entre entidades
 * ✅ Validação com Pydantic
+* ✅ Validação de datas das locações
 * ✅ Tratamento de erros com `HTTPException`
+* ✅ Tratamento de erros de integridade do banco
 * ✅ Controle de disponibilidade dos veículos
 * ✅ Endpoint de devolução
 * ✅ Consulta de locações por cliente
 * ✅ Consulta de veículos disponíveis
 * ✅ Dependency Injection para sessões do banco
+* ✅ Testes automatizados com Pytest
+* ✅ Testes dos endpoints
+* ✅ Testes de regras de negócio
+* ✅ Banco SQLite temporário para testes
 * ✅ Documentação automática com Swagger / OpenAPI
 
-Os próximos passos serão focados em **testes automatizados, melhoria das validações, evolução das regras de negócio e integração com um frontend**.
+Os próximos passos serão focados na evolução da aplicação, incluindo **PostgreSQL, autenticação, paginação, filtros, frontend e deploy**.
 
 ---
 
 ## 👨‍💻 Projeto de estudo
 
-Projeto desenvolvido para consolidar conhecimentos práticos de **Python, desenvolvimento Backend, APIs REST, SQLAlchemy e bancos de dados relacionais**, servindo como etapa de evolução para aplicações mais completas e projetos profissionais.
+Projeto desenvolvido para consolidar conhecimentos práticos de **Python, desenvolvimento Backend, APIs REST, SQLAlchemy, bancos de dados relacionais e testes automatizados**, servindo como etapa de evolução para aplicações mais completas e projetos profissionais.

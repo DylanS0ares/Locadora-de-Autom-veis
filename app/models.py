@@ -16,7 +16,7 @@ class Veiculo(Base):
     modelo : Mapped[str] = mapped_column(String(100))
     marca : Mapped[str] = mapped_column(String(100))
     ano: Mapped[int] = mapped_column(Integer)
-    placa: Mapped[str] = mapped_column(String(100))
+    placa: Mapped[str] = mapped_column(String(100),unique=100,nullable=False)
     disponivel: Mapped[bool] = mapped_column(Boolean,default=True)
 
 class Cliente(Base):
@@ -30,7 +30,7 @@ class Cliente(Base):
         back_populates="cliente"
     )
     nome : Mapped[str] = mapped_column(String(100))
-    email : Mapped[str] = mapped_column(String(100))
+    email : Mapped[str] = mapped_column(String(100),unique=True,nullable=False)
     telefone: Mapped[str] = mapped_column(String(100))
 
 class Locacao(Base):
