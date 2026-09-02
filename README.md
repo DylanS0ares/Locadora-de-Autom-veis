@@ -1,53 +1,98 @@
 # 🚗 API Locadora de Automóveis
 
-API REST desenvolvida em **Python** utilizando **FastAPI, SQLAlchemy, Pydantic e PostgreSQL** para gerenciamento de veículos, clientes e locações.
+API REST para gerenciamento de uma locadora de veículos, desenvolvida com **Python e FastAPI**, utilizando **PostgreSQL, SQLAlchemy, Pydantic, JWT, Alembic e Docker**.
 
-O projeto foi desenvolvido com foco na prática de **Backend, APIs REST, ORM, bancos de dados relacionais, validação de dados, autenticação, autorização, testes automatizados, CRUD, organização de código e implementação de regras de negócio**.
+O projeto foi desenvolvido com foco em práticas de desenvolvimento **Backend**, incluindo arquitetura em camadas, CRUD, ORM, validação de dados, autenticação e autorização, regras de negócio, testes automatizados, migrations e deploy.
+
+## 🌐 Demonstração
+
+**API online:**
+`COLE_AQUI_A_URL_DO_RENDER`
+
+**Swagger / OpenAPI:**
+`COLE_AQUI_A_URL_DO_RENDER/docs`
+
+A documentação interativa permite consultar os endpoints, visualizar os schemas e realizar requisições diretamente pelo navegador.
 
 ---
 
-## 🎯 Objetivo
+## 🎯 Funcionalidades
 
-Construir uma API para gerenciamento de uma locadora de automóveis, permitindo:
-
-* 🚗 Cadastro e gerenciamento de veículos
-* 👤 Cadastro e gerenciamento de clientes
+* 🚗 CRUD de veículos
+* 👤 CRUD de clientes
 * 🔐 Cadastro e autenticação de usuários
+* 🔑 Autenticação utilizando JWT
+* 🛡️ Autorização baseada em perfil (`cliente` / `admin`)
 * 📋 Criação e gerenciamento de locações
-* 🔄 Controle da disponibilidade dos veículos
+* 🔄 Controle automático da disponibilidade dos veículos
 * ↩️ Devolução de veículos
 * 🔗 Consulta das locações de um cliente
-* 🛡️ Controle de acesso baseado no tipo de usuário
-
-A aplicação utiliza relacionamentos entre as entidades e regras de negócio para manter a consistência das locações e da disponibilidade dos veículos.
-
----
-
-## 🛠️ Tecnologias utilizadas
-
-* **Python**
-* **FastAPI**
-* **SQLAlchemy**
-* **Pydantic**
-* **PostgreSQL**
-* **SQLite** — utilizado nos testes automatizados
-* **psycopg2**
-* **Uvicorn**
-* **Pytest**
-* **HTTPX**
-* **Passlib**
-* **bcrypt**
-* **python-jose**
-* **JWT**
-* **Swagger / OpenAPI**
+* ✅ Validação de dados com Pydantic
+* 📅 Validação das datas das locações
+* 🗄️ Tratamento de erros de integridade do banco
+* 🧪 Testes automatizados
+* 🔄 Migrations com Alembic
+* 🐳 Containerização com Docker
+* ☁️ Deploy da aplicação
 
 ---
 
-## 📁 Estrutura do projeto
+## 🛠️ Tecnologias
+
+| Tecnologia            | Utilização                  |
+| --------------------- | --------------------------- |
+| **Python**            | Linguagem principal         |
+| **FastAPI**           | Desenvolvimento da API REST |
+| **SQLAlchemy**        | ORM e acesso ao banco       |
+| **PostgreSQL**        | Banco de dados da aplicação |
+| **Pydantic**          | Validação e serialização    |
+| **Alembic**           | Controle de migrations      |
+| **JWT**               | Autenticação                |
+| **Passlib + bcrypt**  | Hash de senhas              |
+| **Pytest**            | Testes automatizados        |
+| **HTTPX**             | Cliente HTTP para testes    |
+| **Docker**            | Containerização             |
+| **Uvicorn**           | Servidor ASGI               |
+| **Swagger / OpenAPI** | Documentação da API         |
+
+---
+
+# 🏗️ Arquitetura
+
+A aplicação utiliza uma separação de responsabilidades entre **routers, CRUDs, schemas, models e autenticação**.
+
+```text
+                    Cliente
+                       │
+                       ▼
+                  HTTP Request
+                       │
+                       ▼
+                    Router
+                       │
+             ┌─────────┴─────────┐
+             │                   │
+        Autenticação         Validação
+             │                   │
+             └─────────┬─────────┘
+                       ▼
+                      CRUD
+                       │
+                       ▼
+                  SQLAlchemy
+                       │
+                       ▼
+                   PostgreSQL
+```
+
+A estrutura em camadas evita concentrar toda a lógica nos endpoints e facilita a manutenção e evolução do projeto.
+
+---
+
+# 📁 Estrutura do projeto
 
 ```text
 locadora-de-automoveis/
-
 │
 ├── app/
 │   ├── __init__.py
@@ -79,191 +124,105 @@ locadora-de-automoveis/
 │   ├── test_clientes.py
 │   └── test_locacoes.py
 │
+├── alembic/
+│   ├── versions/
+│   └── env.py
+│
 ├── .gitignore
+├── alembic.ini
+├── docker-compose.yml
+├── Dockerfile
 ├── requirements.txt
 └── README.md
 ```
 
-A aplicação utiliza uma separação de responsabilidades entre **routers**, **CRUDs**, **schemas**, **models** e componentes de **autenticação e segurança**.
+### Responsabilidade dos principais componentes
 
-### Responsabilidade dos arquivos
-
-| Arquivo               | Responsabilidade                                        |
-| --------------------- | ------------------------------------------------------- |
-| `main.py`             | Inicialização da aplicação e registro dos routers       |
-| `database.py`         | Configuração do banco e gerenciamento das sessões       |
-| `models.py`           | Modelos ORM e estrutura das tabelas                     |
-| `schemas.py`          | Schemas Pydantic e validação dos dados                  |
-| `security.py`         | Criação e validação dos tokens JWT e controle de acesso |
-| `password.py`         | Hash e verificação de senhas                            |
-| `crud/veiculos.py`    | Operações de banco relacionadas aos veículos            |
-| `crud/clientes.py`    | Operações de banco relacionadas aos clientes            |
-| `crud/locacoes.py`    | Operações de banco e regras relacionadas às locações    |
-| `crud/usuarios.py`    | Operações relacionadas aos usuários                     |
-| `routers/veiculos.py` | Endpoints HTTP relacionados aos veículos                |
-| `routers/clientes.py` | Endpoints HTTP relacionados aos clientes                |
-| `routers/locacoes.py` | Endpoints HTTP relacionados às locações                 |
-| `routers/usuarios.py` | Cadastro e autenticação de usuários                     |
-| `tests/`              | Testes automatizados da aplicação                       |
-
----
-
-# 🏗️ Arquitetura
-
-A aplicação segue uma separação simples entre as responsabilidades:
-
-```text
-                         main.py
-                            │
-              ┌─────────────┼─────────────┐
-              ↓             ↓             ↓
-          Routers        Routers        Routers
-              │             │             │
-              ↓             ↓             ↓
-            CRUD           CRUD           CRUD
-              │             │             │
-              └─────────────┼─────────────┘
-                            ↓
-                       SQLAlchemy
-                            ↓
-                       PostgreSQL
-```
-
-Os componentes de autenticação atuam como uma camada adicional:
-
-```text
-Requisição HTTP
-      ↓
-Authentication
-      ↓
-JWT
-      ↓
-Autorização
-      ↓
-Router
-      ↓
-CRUD
-      ↓
-SQLAlchemy
-      ↓
-PostgreSQL
-```
-
-### Routers
-
-Os routers são responsáveis por:
-
-* Receber requisições HTTP
-* Receber dados através dos schemas
-* Utilizar as dependências do FastAPI
-* Chamar as funções da camada CRUD
-* Tratar erros HTTP
-* Retornar as respostas da API
-
-### CRUD
-
-A camada `crud/` concentra as operações relacionadas ao banco de dados, como:
-
-* Consultas
-* Inserções
-* Atualizações
-* Exclusões
-* Alterações de disponibilidade
-* Regras relacionadas às operações das entidades
-
-Dessa forma, a lógica de acesso ao banco não fica concentrada nos routers.
+| Componente    | Responsabilidade                                  |
+| ------------- | ------------------------------------------------- |
+| `main.py`     | Inicialização da aplicação e registro dos routers |
+| `database.py` | Configuração do banco e sessões                   |
+| `models.py`   | Modelos ORM e estrutura das tabelas               |
+| `schemas.py`  | Schemas Pydantic e validação                      |
+| `security.py` | JWT e controle de acesso                          |
+| `password.py` | Hash e verificação de senhas                      |
+| `crud/`       | Operações de banco e regras de negócio            |
+| `routers/`    | Endpoints HTTP                                    |
+| `tests/`      | Testes automatizados                              |
+| `alembic/`    | Controle de migrations                            |
 
 ---
 
 # 🗄️ Banco de dados
 
-A aplicação utiliza **PostgreSQL** como banco de dados principal e **SQLAlchemy** como ORM.
+O projeto utiliza **PostgreSQL** como banco principal e **SQLAlchemy** como ORM.
 
-A conexão utiliza o driver `psycopg2`.
-
-O banco contém as principais tabelas:
-
-```text
-usuarios
-clientes
-veiculos
-locacoes
-```
-
-O SQLAlchemy realiza o mapeamento entre as classes Python e as tabelas do banco de dados.
-
-Para os testes automatizados, é utilizado um **banco SQLite temporário**, isolado do banco PostgreSQL utilizado pela aplicação.
-
----
-
-# 🧩 Entidades
-
-O sistema possui quatro entidades principais:
+Principais entidades:
 
 ```text
 Usuario
-
-Cliente ──────┐
-              │
-              ↓
-           Locacao
-              ↑
-              │
-Veiculo ──────┘
+   │
+   │
+Cliente ────────┐
+                │
+                ▼
+             Locacao
+                ▲
+                │
+Veiculo ────────┘
 ```
 
-### 🚗 Veículo
+### Entidades
+
+#### 🚗 Veículo
 
 Representa os veículos disponíveis para locação.
 
-Campos:
+Principais campos:
 
-* `id`
-* `modelo`
-* `marca`
-* `ano`
-* `placa`
-* `disponivel`
+```text
+id
+modelo
+marca
+ano
+placa
+quilometragem
+disponivel
+```
 
-### 👤 Cliente
+#### 👤 Cliente
 
-Representa os clientes cadastrados no sistema.
+```text
+id
+nome
+email
+telefone
+```
 
-Campos:
+#### 📋 Locação
 
-* `id`
-* `nome`
-* `email`
-* `telefone`
+```text
+id
+cliente_id
+veiculo_id
+data_inicio
+data_fim
+valor
+```
 
-### 📋 Locação
+`cliente_id` e `veiculo_id` são **Foreign Keys** que relacionam a locação ao cliente e ao veículo.
 
-Representa uma locação realizada por um cliente.
+#### 🔐 Usuário
 
-Campos:
+```text
+id
+nome
+email
+senha_hash
+tipo
+```
 
-* `id`
-* `cliente_id`
-* `veiculo_id`
-* `data_inicio`
-* `data_fim`
-* `valor`
-
-`cliente_id` e `veiculo_id` são **Foreign Keys** utilizadas para relacionar uma locação com um cliente e um veículo.
-
-### 🔐 Usuário
-
-Representa os usuários que possuem acesso à API.
-
-Campos:
-
-* `id`
-* `nome`
-* `email`
-* `senha_hash`
-* `tipo`
-
-O campo `tipo` define o nível de acesso do usuário:
+Os usuários possuem dois níveis de acesso:
 
 ```text
 cliente
@@ -272,37 +231,11 @@ admin
 
 ---
 
-# 🔗 Relacionamentos
-
-Os relacionamentos foram implementados utilizando `ForeignKey` e `relationship` do SQLAlchemy.
-
-Uma locação pertence a:
-
-* 1 cliente
-* 1 veículo
-
-Enquanto um cliente e um veículo podem estar relacionados a várias locações ao longo do tempo.
-
----
-
 # 🧩 SQLAlchemy ORM
 
-O projeto utiliza **ORM (Object-Relational Mapping)** para representar as tabelas do banco através de classes Python.
+O projeto utiliza o padrão **Object-Relational Mapping (ORM)** para representar as entidades do banco através de classes Python.
 
-Exemplo:
-
-```python
-class Veiculo(Base):
-    __tablename__ = "veiculos"
-```
-
-Os campos utilizam o sistema moderno de tipagem do SQLAlchemy:
-
-```python
-modelo: Mapped[str] = mapped_column(String(100))
-```
-
-Também foram utilizados conceitos e recursos como:
+São utilizados recursos do SQLAlchemy 2:
 
 * `DeclarativeBase`
 * `Mapped`
@@ -318,77 +251,63 @@ Também foram utilizados conceitos e recursos como:
 * `db.scalar()`
 * `db.scalars()`
 
+Exemplo:
+
+```python
+class Veiculo(Base):
+    __tablename__ = "veiculos"
+
+    modelo: Mapped[str] = mapped_column(String(100))
+```
+
 ---
 
-# 📦 Pydantic Schemas
+# 📦 Pydantic
 
-Foram criados schemas específicos para controlar os dados recebidos e enviados pela API.
+Os schemas Pydantic controlam os dados recebidos e retornados pela API.
 
-### Veículos
+Exemplos:
 
 ```text
-VeiculoSchema
 VeiculoCreate
 VeiculoUpdate
-```
+VeiculoSchema
 
-### Clientes
-
-```text
-ClienteSchema
 ClienteCreate
 ClienteUpdate
-```
+ClienteSchema
 
-### Locações
-
-```text
-LocacaoSchema
 LocacaoCreate
 LocacaoUpdate
-```
+LocacaoSchema
 
-### Usuários
-
-```text
-UsuarioSchema
 UsuarioCreate
+UsuarioSchema
 LoginSchema
 ```
 
-Os schemas são utilizados pelo FastAPI para **validação dos dados** e definição do formato das respostas.
+Entre as validações implementadas:
 
-Entre as validações implementadas estão:
-
-* Formato e tamanho da placa
 * E-mail válido
 * Telefone válido
+* Formato da placa
 * Ano do veículo
 * Valor da locação maior que zero
-* Data de início não pode estar no passado
-* Data de início deve ser anterior à data de fim
+* Datas de locação válidas
+* Data de início anterior à data de fim
 * Senha com tamanho mínimo
 * Campos obrigatórios
 
 ---
 
-# 🌐 API REST
-
-A API utiliza os principais métodos HTTP:
-
-| Método   | Utilização  |
-| -------- | ----------- |
-| `GET`    | Consulta    |
-| `POST`   | Criação     |
-| `PUT`    | Atualização |
-| `DELETE` | Exclusão    |
+# 🌐 Endpoints
 
 ## 🚗 Veículos
 
-| Método | Endpoint                 | Função                     |
+| Método | Endpoint                 | Descrição                  |
 | ------ | ------------------------ | -------------------------- |
 | GET    | `/veiculos/`             | Lista veículos             |
-| GET    | `/veiculos/{veiculo_id}` | Busca veículo por ID       |
+| GET    | `/veiculos/{veiculo_id}` | Busca veículo              |
 | GET    | `/veiculos/disponiveis`  | Lista veículos disponíveis |
 | POST   | `/veiculos/`             | Cria veículo               |
 | PUT    | `/veiculos/{veiculo_id}` | Atualiza veículo           |
@@ -396,7 +315,7 @@ A API utiliza os principais métodos HTTP:
 
 ## 👤 Clientes
 
-| Método | Endpoint                          | Função                    |
+| Método | Endpoint                          | Descrição                 |
 | ------ | --------------------------------- | ------------------------- |
 | GET    | `/clientes/`                      | Lista clientes            |
 | POST   | `/clientes/`                      | Cria cliente              |
@@ -406,7 +325,7 @@ A API utiliza os principais métodos HTTP:
 
 ## 📋 Locações
 
-| Método | Endpoint                          | Função           |
+| Método | Endpoint                          | Descrição        |
 | ------ | --------------------------------- | ---------------- |
 | GET    | `/locacoes/`                      | Lista locações   |
 | POST   | `/locacoes/`                      | Cria locação     |
@@ -416,7 +335,7 @@ A API utiliza os principais métodos HTTP:
 
 ## 🔐 Usuários
 
-| Método | Endpoint          | Função           |
+| Método | Endpoint          | Descrição        |
 | ------ | ----------------- | ---------------- |
 | POST   | `/usuarios/`      | Cadastra usuário |
 | POST   | `/usuarios/login` | Realiza login    |
@@ -427,53 +346,42 @@ A API utiliza os principais métodos HTTP:
 
 A API utiliza **JWT (JSON Web Token)** para autenticação.
 
-O fluxo de autenticação funciona da seguinte forma:
+Fluxo:
 
 ```text
 Cadastro
    ↓
-Senha recebe hash
+Hash da senha
    ↓
 Usuário armazenado no PostgreSQL
    ↓
 Login
    ↓
-Validação de email e senha
+Validação de credenciais
    ↓
 JWT gerado
    ↓
-Token enviado nas requisições protegidas
+Bearer Token
+   ↓
+Endpoint protegido
 ```
 
-As senhas não são armazenadas diretamente no banco. O projeto utiliza **bcrypt** através do `Passlib` para gerar e verificar os hashes.
+As senhas são armazenadas utilizando **hash bcrypt**, e não em texto puro.
 
 ### Controle de acesso
 
-A API possui dois tipos de usuário:
-
-```text
-cliente
-admin
-```
-
-O acesso às rotas pode ser controlado através das dependências:
+A aplicação utiliza Dependency Injection para controlar as permissões:
 
 ```python
 get_usuario_atual
 get_admin_atual
 ```
 
-O `get_usuario_atual` valida o token JWT e identifica o usuário autenticado.
+O `get_usuario_atual` valida o JWT e identifica o usuário autenticado.
 
-O `get_admin_atual` verifica se o usuário possui permissão de administrador.
+O `get_admin_atual` verifica se o usuário possui privilégios administrativos.
 
-Por exemplo, operações administrativas de veículos podem exigir um usuário com:
-
-```text
-tipo = admin
-```
-
-Caso um usuário autenticado não possua a permissão necessária, a API retorna:
+Quando um usuário autenticado não possui permissão suficiente:
 
 ```text
 403 Forbidden
@@ -483,76 +391,54 @@ Caso um usuário autenticado não possua a permissão necessária, a API retorna
 
 # ⚙️ Regras de negócio
 
-Além das operações CRUD, a API possui regras específicas para o funcionamento da locadora.
+O projeto possui regras para manter a consistência das locações.
 
-## Criação de locação
+### Criação de locação
 
-Antes de criar uma locação, a API verifica:
+Antes de criar uma locação:
 
-1. Se o cliente existe.
-2. Se o veículo existe.
-3. Se o veículo está disponível.
-4. Se as datas informadas são válidas.
-5. Se o valor da locação é maior que zero.
+1. O cliente deve existir.
+2. O veículo deve existir.
+3. O veículo deve estar disponível.
+4. As datas devem ser válidas.
+5. O valor deve ser maior que zero.
 
-Após uma locação, o veículo passa automaticamente para indisponível.
+Após a criação:
 
 ```text
 Veículo disponível
-       ↓
+        ↓
 Locação criada
-       ↓
+        ↓
 Veículo indisponível
 ```
 
----
+### Troca de veículo
 
-## Atualização de locação
-
-Ao alterar uma locação, a API verifica se o cliente e o novo veículo existem.
-
-Caso o veículo seja alterado, o sistema verifica sua disponibilidade.
-
-Quando ocorre a troca:
+Quando uma locação é atualizada e o veículo é alterado:
 
 ```text
 Veículo antigo
-       ↓
-fica disponível
+      ↓
+Disponível
 
 Veículo novo
-       ↓
-fica indisponível
+      ↓
+Indisponível
 ```
 
-Isso mantém o estado dos veículos consistente com as locações.
+### Devolução
 
----
-
-## Devolução de veículo
-
-Foi criado um endpoint específico para devolução:
+Endpoint:
 
 ```text
 POST /locacoes/{locacao_id}/devolver
 ```
 
-A API localiza a locação e o veículo relacionado e altera sua disponibilidade:
-
-```python
-veiculo.disponivel = True
-```
-
-O veículo pode então ser utilizado em uma nova locação.
-
----
-
-## Exclusão de locação
-
-Ao excluir uma locação, o veículo relacionado é liberado:
+Após a devolução:
 
 ```text
-Locação excluída
+Locação devolvida
        ↓
 Veículo liberado
        ↓
@@ -561,9 +447,9 @@ disponivel = True
 
 ---
 
-# 🔒 Validação e tratamento de erros
+# 🔒 Tratamento de erros
 
-A API utiliza `HTTPException` para retornar respostas HTTP adequadas quando ocorre algum problema.
+A API utiliza respostas HTTP adequadas para diferentes situações.
 
 Exemplo:
 
@@ -574,135 +460,54 @@ raise HTTPException(
 )
 ```
 
-São tratadas situações como:
+São tratados casos como:
 
-* Cliente inexistente
-* Veículo inexistente
-* Locação inexistente
-* Veículo indisponível
-* E-mail de cliente duplicado
-* Placa de veículo duplicada
-* Dados de entrada inválidos
-* Datas de locação inválidas
+* Recursos inexistentes
+* Veículos indisponíveis
+* E-mails duplicados
+* Placas duplicadas
+* Dados inválidos
+* Datas inválidas
 * Erros de integridade do banco
 * Token inválido ou expirado
 * Usuário sem permissão
 
-Erros de integridade do banco são tratados através de `IntegrityError`, evitando que exceções do banco sejam expostas diretamente ao cliente da API.
-
----
-
-# 🧱 Routers e CRUD
-
-A aplicação foi organizada utilizando `APIRouter`, separando os endpoints por entidade.
-
-```text
-main.py
-   │
-   ├── veiculos.router
-   ├── clientes.router
-   ├── locacoes.router
-   └── usuarios.router
-```
-
-Cada router recebe as requisições relacionadas à sua entidade e delega as operações de banco para sua respectiva camada CRUD.
-
-Exemplo:
-
-```text
-POST /veiculos/
-       ↓
-routers/veiculos.py
-       ↓
-crud/veiculos.py
-       ↓
-SQLAlchemy
-       ↓
-PostgreSQL
-```
-
-Essa separação facilita a manutenção e permite que a lógica de acesso ao banco seja reutilizada por diferentes endpoints.
-
----
-
-# 💉 Dependency Injection
-
-O projeto utiliza `Depends` do FastAPI para fornecer dependências aos endpoints.
-
-A sessão do banco é fornecida através de:
-
-```python
-def get_db():
-    db = SessionLocal()
-
-    try:
-        yield db
-    finally:
-        db.close()
-```
-
-Além do gerenciamento das sessões do banco, o sistema utiliza Dependency Injection para autenticação e autorização:
-
-```python
-usuario = Depends(get_usuario_atual)
-```
-
-e:
-
-```python
-usuario = Depends(get_admin_atual)
-```
-
-Dessa forma, responsabilidades como acesso ao banco e controle de autenticação ficam centralizadas.
+Erros de integridade utilizam `IntegrityError` para evitar que detalhes internos do banco sejam expostos diretamente ao cliente.
 
 ---
 
 # 🧪 Testes automatizados
 
-O projeto utiliza **Pytest** para testar os endpoints e as principais regras de negócio da aplicação.
-
-A estrutura dos testes é:
+Os testes são realizados utilizando **Pytest** e **HTTPX**.
 
 ```text
 tests/
-
 ├── conftest.py
 ├── test_veiculos.py
 ├── test_clientes.py
 └── test_locacoes.py
 ```
 
-O `conftest.py` configura o ambiente de testes e fornece um `TestClient` para realizar requisições à API.
+O ambiente de testes utiliza um banco **SQLite separado**, evitando alterações no PostgreSQL utilizado pela aplicação.
 
-Os testes utilizam um **banco SQLite temporário**, separado do PostgreSQL utilizado pela aplicação.
+São testados comportamentos como:
 
-Dessa forma, os testes não modificam os dados do banco principal.
-
-O ambiente de testes também cria um usuário administrador e gera um token JWT para permitir o teste das rotas protegidas.
-
-### Principais comportamentos testados
-
-* Criação de veículos
-* Consulta de veículos
-* Atualização de veículos
-* Exclusão de veículos
-* Criação de clientes
-* Atualização de clientes
-* Exclusão de clientes
+* CRUD de veículos
+* CRUD de clientes
+* CRUD de locações
 * Criação de locações
+* Veículos indisponíveis
+* Devolução de veículos
 * Atualização de locações
 * Exclusão de locações
-* Validação de veículos indisponíveis
-* Devolução de veículos
-* Regras de negócio das locações
 * Validações de entrada
+* Recursos inexistentes
 * E-mails duplicados
 * Placas duplicadas
-* Tratamento de recursos inexistentes
+* Regras de negócio
+* Rotas protegidas
 
-### Executando os testes
-
-Na raiz do projeto:
+### Executar testes
 
 ```bash
 pytest
@@ -710,29 +515,66 @@ pytest
 
 ---
 
-# 📖 Documentação da API
+# 🔄 Migrations
 
-A aplicação utiliza **Swagger / OpenAPI** através do FastAPI.
+O controle da estrutura do banco é realizado utilizando **Alembic**.
 
-Após iniciar o servidor:
+As alterações nos modelos podem ser transformadas em migrations:
 
 ```bash
-python -m uvicorn app.main:app --reload
+alembic revision --autogenerate -m "descricao da alteracao"
 ```
 
-A documentação pode ser acessada em:
+E aplicadas ao banco com:
 
-```text
-http://127.0.0.1:8000/docs
+```bash
+alembic upgrade head
 ```
 
-O Swagger permite visualizar os endpoints, schemas, parâmetros e executar requisições diretamente pelo navegador.
-
-As rotas protegidas utilizam autenticação **Bearer Token**.
+No ambiente Docker/produção, as migrations são executadas antes da inicialização da aplicação.
 
 ---
 
-# ▶️ Como executar
+# 🐳 Docker
+
+A aplicação pode ser executada em containers utilizando Docker.
+
+O ambiente possui:
+
+```text
+API
+ │
+ │
+ └── PostgreSQL
+```
+
+Para iniciar o ambiente:
+
+```bash
+docker compose up --build
+```
+
+A API ficará disponível localmente em:
+
+```text
+http://localhost:8000
+```
+
+Swagger:
+
+```text
+http://localhost:8000/docs
+```
+
+Para parar os containers:
+
+```bash
+docker compose down
+```
+
+---
+
+# ▶️ Execução local
 
 ## 1. Clone o projeto
 
@@ -748,146 +590,137 @@ cd Locadora-de-Autom-veis
 pip install -r requirements.txt
 ```
 
-## 3. Configure o PostgreSQL
+## 3. Configure as variáveis de ambiente
 
-Crie um banco PostgreSQL para a aplicação e configure a URL de conexão no arquivo:
+Crie um arquivo `.env`:
 
-```text
-app/database.py
+```env
+DATABASE_URL=postgresql+psycopg2://usuario:senha@localhost:5432/locadora
+SECRET_KEY=sua_chave_secreta
 ```
 
-Exemplo:
+> Não versione o arquivo `.env`. As credenciais devem permanecer fora do repositório.
 
-```python
-DATABASE_URL = "postgresql+psycopg2://usuario:senha@127.0.0.1:5432/locadora"
+## 4. Execute as migrations
+
+```bash
+alembic upgrade head
 ```
 
-> Ajuste usuário, senha, host e porta de acordo com sua instalação do PostgreSQL.
-
-## 4. Execute a aplicação
+## 5. Execute a aplicação
 
 ```bash
 python -m uvicorn app.main:app --reload
 ```
 
-## 5. Acesse a documentação
+## 6. Acesse o Swagger
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-## 6. Execute os testes
+---
 
-```bash
-pytest
+# ☁️ Deploy
+
+A aplicação foi containerizada com **Docker** e publicada utilizando **Render**.
+
+A arquitetura de produção utiliza:
+
+```text
+Internet
+   ↓
+Render
+   ↓
+Docker Container
+   ↓
+FastAPI
+   ↓
+PostgreSQL
 ```
+
+As variáveis sensíveis, como `DATABASE_URL` e `SECRET_KEY`, são configuradas através das variáveis de ambiente do ambiente de produção.
 
 ---
 
-# 📚 Conceitos praticados
-
-Durante o desenvolvimento foram praticados:
+# 📚 Principais conceitos praticados
 
 * Python
-* Programação Orientada a Objetos
-* Banco de dados relacional
-* PostgreSQL
-* SQLite
-* SQLAlchemy
-* ORM
-* Models
-* Foreign Keys
-* Relationships
-* Sessions
-* CRUD
 * FastAPI
-* REST
+* REST API
 * HTTP
 * JSON
+* SQL
+* PostgreSQL
+* SQLAlchemy
+* ORM
+* Foreign Keys
+* Relationships
+* CRUD
 * Pydantic
-* Schemas
 * Dependency Injection
-* `Depends`
-* Validação de dados
-* `HTTPException`
-* Regras de negócio
-* Routers
-* Organização de projetos Python
-* Swagger / OpenAPI
-* Pytest
-* Testes automatizados
-* Fixtures
-* `TestClient`
-* Banco de dados temporário para testes
 * JWT
-* Autenticação
-* Autorização
 * RBAC
 * Hash de senhas
 * bcrypt
-* Tratamento de `IntegrityError`
+* Tratamento de exceções
+* Regras de negócio
+* Pytest
+* HTTPX
+* Fixtures
+* Alembic
+* Docker
+* Docker Compose
+* Deploy
 
 ---
 
 # 🚀 Próximos passos
 
-### Evolução do backend
+Algumas evoluções planejadas para o projeto:
 
 * [ ] Implementar paginação
 * [ ] Adicionar filtros e buscas
-* [ ] Melhorar separação das regras de negócio
-* [ ] Aumentar a cobertura de testes
-* [ ] Melhorar gerenciamento de configurações e variáveis de ambiente
-* [ ] Adicionar migrations com Alembic
-
-### Integração
-
+* [ ] Melhorar cobertura de testes
 * [ ] Criar frontend para consumir a API
-* [ ] Integrar com JavaScript
 * [ ] Criar dashboard
-* [ ] Realizar deploy da aplicação
-* [ ] Containerizar a aplicação com Docker
+* [ ] Adicionar funcionalidades de gerenciamento de frota
+* [ ] Melhorar observabilidade e logging
 
 ---
 
 # 📌 Status
 
-**Em desenvolvimento — Projeto de estudo de Backend e APIs REST.**
+### 🟢 Projeto funcional e publicado
 
-O projeto atualmente possui:
+O backend atualmente possui:
 
 * ✅ CRUD de veículos
 * ✅ CRUD de clientes
 * ✅ CRUD de locações
 * ✅ CRUD de usuários
-* ✅ Camada CRUD para separação da lógica de banco
-* ✅ Routers organizados por entidade
-* ✅ Relacionamentos entre entidades
 * ✅ PostgreSQL
 * ✅ SQLAlchemy ORM
-* ✅ Validação com Pydantic
-* ✅ Validação de datas das locações
-* ✅ Tratamento de erros com `HTTPException`
-* ✅ Tratamento de erros de integridade do banco
-* ✅ Controle de disponibilidade dos veículos
-* ✅ Endpoint de devolução
-* ✅ Consulta de locações por cliente
-* ✅ Consulta de veículos disponíveis
-* ✅ Dependency Injection
-* ✅ Autenticação com JWT
-* ✅ Hash de senhas com bcrypt
-* ✅ Autorização baseada em tipo de usuário
-* ✅ Controle de acesso para administradores
-* ✅ Testes automatizados com Pytest
-* ✅ Testes dos endpoints
-* ✅ Testes de regras de negócio
-* ✅ Banco SQLite temporário para testes
-* ✅ Documentação automática com Swagger / OpenAPI
-
-Os próximos passos serão focados na evolução da aplicação, incluindo **paginação, filtros, migrations, Docker, frontend e deploy**.
+* ✅ Pydantic
+* ✅ JWT
+* ✅ Autenticação
+* ✅ Autorização
+* ✅ RBAC
+* ✅ Hash de senhas
+* ✅ Regras de negócio
+* ✅ Validação de dados
+* ✅ Tratamento de erros
+* ✅ Testes automatizados
+* ✅ Alembic
+* ✅ Docker
+* ✅ Docker Compose
+* ✅ Swagger / OpenAPI
+* ✅ Deploy
 
 ---
 
-# 👨‍💻 Projeto de estudo
+## 👨‍💻 Sobre o projeto
 
-Projeto desenvolvido para consolidar conhecimentos práticos de **Python, desenvolvimento Backend, APIs REST, SQLAlchemy, PostgreSQL, autenticação, autorização, bancos de dados relacionais e testes automatizados**, servindo como etapa de evolução para aplicações mais completas e projetos profissionais.
+Projeto desenvolvido para consolidar conhecimentos práticos em **desenvolvimento Backend e APIs REST**, explorando desde a modelagem de banco de dados e implementação das regras de negócio até autenticação, testes, migrations, containerização e deploy.
+
+O projeto representa uma aplicação prática de conceitos utilizados no desenvolvimento de APIs modernas com Python.
