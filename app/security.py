@@ -6,9 +6,13 @@ from app.database import get_db
 from app.models import Usuario
 from app.crud.usuarios import buscar_usuario_por_id
 from fastapi import Depends, HTTPException
+from dotenv import load_dotenv
+import os
 
 
-SECRET_KEY = "sua-chave-secreta-aqui"
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACESS_TOKEN_EXPIRE_MINUTES = 30
 
