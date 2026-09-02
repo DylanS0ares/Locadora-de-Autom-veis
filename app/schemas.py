@@ -131,3 +131,20 @@ class LocacaoUpdate(BaseModel):
             )
 
         return self
+
+class UsuarioSchema(BaseModel):
+    id: int
+    nome: str
+    email: EmailStr
+    tipo: str
+
+
+class UsuarioCreate(BaseModel):
+    nome: str = Field(min_length=3)
+    email: EmailStr
+    senha: str = Field(min_length=8, max_length=64)
+
+class LoginSchema(BaseModel):
+    email: EmailStr
+    senha : str
+    

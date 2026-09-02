@@ -1,5 +1,7 @@
 from fastapi import Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
+from app.security import get_usuario_atual,get_admin_atual
+from app.models import Usuario
 
 from app.crud import veiculos as crud_veiculos
 from ..database import get_db
@@ -18,7 +20,8 @@ router = APIRouter(
 
 @router.get("/", response_model=list[VeiculoSchema])
 def lista_veiculos(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    usuario : Usuario = Depends(get_usuario_atual)
 ):
     return crud_veiculos.listar_veiculos(db)
 
@@ -52,7 +55,8 @@ def buscar_veiculo(
 @router.post("/", response_model=VeiculoSchema)
 def criar_veiculos(
     veiculo: VeiculoCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_admin_atual)
 ):
     novo_veiculo = crud_veiculos.criar_veiculo(
         db,
@@ -72,7 +76,8 @@ def criar_veiculos(
 def atualizar_veiculo(
     veiculo_id: int,
     veiculo: VeiculoUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_admin_atual)
 ):
     veiculo_existente = crud_veiculos.atualizar_veiculo(
         veiculo_id,
@@ -92,7 +97,8 @@ def atualizar_veiculo(
 @router.delete("/{veiculo_id}")
 def deletar_veiculo(
     veiculo_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    usuario : Usuario = Depends(get_admin_atual)
 ):
     resultado = crud_veiculos.deletar_veiculo(
         veiculo_id,

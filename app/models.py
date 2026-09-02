@@ -53,3 +53,16 @@ class Locacao(Base):
     data_inicio: Mapped[datetime] = mapped_column(DateTime)
     data_fim: Mapped[datetime] = mapped_column(DateTime)
     valor: Mapped[float] = mapped_column(Float)
+
+
+class Usuario(Base):
+    __tablename__ = "usuario"
+    id : Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    nome: Mapped[str] = mapped_column(String(100), nullable=False)
+    email: Mapped[str] = mapped_column(String(100),unique=True, nullable = False)
+    senha_hash: Mapped[str] = mapped_column(String(255),nullable=False)
+    tipo: Mapped[str] = mapped_column(String(20),default="cliente",nullable=False)
