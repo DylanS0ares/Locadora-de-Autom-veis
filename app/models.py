@@ -18,6 +18,7 @@ class Veiculo(Base):
     ano: Mapped[int] = mapped_column(Integer)
     placa: Mapped[str] = mapped_column(String(100),unique=100,nullable=False)
     disponivel: Mapped[bool] = mapped_column(Boolean,default=True)
+    quilometragem: Mapped[int] = mapped_column(Integer,default=0)
 
 class Cliente(Base):
     __tablename__ = "clientes"
