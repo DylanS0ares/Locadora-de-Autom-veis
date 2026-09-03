@@ -4,15 +4,16 @@ from .routers import veiculos, clientes, locacoes, usuarios
 
 app = FastAPI()
 
-# CORS
+# Apenas o CORSMiddleware - ele já trata OPTIONS automaticamente
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tudo liberado
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Rotas
 app.include_router(veiculos.router)
 app.include_router(clientes.router)
 app.include_router(locacoes.router)
