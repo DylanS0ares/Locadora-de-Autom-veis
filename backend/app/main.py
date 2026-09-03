@@ -7,11 +7,7 @@ app = FastAPI()
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-    "http://localhost:3000",
-    "https://locadora-frontend-u7n6.onrender.com",  # URL exata do frontend
-    # ou use "*" para teste
-],
+    allow_origins=["*"],  # tudo liberado
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
