@@ -5,7 +5,7 @@ import axios from 'axios';
 
 // ---------- Configuração da API ----------
 const api = axios.create({
-  baseURL: 'https://locadora-de-autom-veis.onrender.com',
+  baseURL: 'https://locadora-backend.onrender.com',
   headers: { 'Content-Type': 'application/json' },
 });
 
