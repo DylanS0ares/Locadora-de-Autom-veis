@@ -7,10 +7,11 @@ O projeto foi desenvolvido com foco em práticas de desenvolvimento **Backend**,
 ## 🌐 Demonstração
 
 **API online:**
-`COLE_AQUI_A_URL_DO_RENDER`
+`AINDA NAO ARRUMEI O FRONTEND`
 
+Aqui temos uma ideia de como está funcionando a FastAPI e toda a estruturação
 **Swagger / OpenAPI:**
-`COLE_AQUI_A_URL_DO_RENDER/docs`
+`https://locadora-de-autom-veis.onrender.com/docs`
 
 A documentação interativa permite consultar os endpoints, visualizar os schemas e realizar requisições diretamente pelo navegador.
 
